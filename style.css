@@ -1,0 +1,850 @@
+/* ================================================= */
+/* --- Global Reset & Base Colors --- */
+/* ================================================= */
+
+body {
+    font-family: 'Montserrat', sans-serif; 
+    margin: 0;
+    padding: 0;
+    background-color: #0a0a0a; 
+    color: #e0e0e0; 
+    line-height: 1.6;
+}
+
+/* ================================================= */
+/* --- Logo & Header Layout (Desktop/Base) --- */
+/* ================================================= */
+
+@keyframes logo-glow {
+    0% {
+        text-shadow: 0 0 1px #fff, 0 0 4px #8ccbff;
+        transform: scale(1);
+    }
+    50% {
+        text-shadow: 0 0 5px #09db14, 0 0 10px #8ccbff, 0 0 20px rgba(140, 203, 255, 0.5);
+        transform: scale(1.005);
+    }
+    100% {
+        text-shadow: 0 0 1px #fcf700, 0 0 4px #08d646;
+        transform: scale(1);
+    }
+}
+
+.animated-logo-text {
+    font-size: 0.8em; 
+    font-family: 'Orbitron', sans-serif; 
+    font-weight: 900; 
+    letter-spacing: 1.5px; 
+    display: inline-block;
+    user-select: none; 
+    background: linear-gradient(90deg, #eeff05, #ff8c8c); 
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: rgb(255, 251, 0); 
+    animation: logo-glow 3s ease-in-out infinite alternate;
+}
+
+.logo {
+    text-align: left; 
+    flex-grow: 0; 
+    margin: 0;
+    width: auto; 
+    min-width: 250px; 
+}
+
+#main-header {
+    background: linear-gradient(135deg, #0b25b9 0%, #8511a1 100%); 
+    padding: 20px 30px; 
+    display: flex;
+    flex-wrap: nowrap; 
+    justify-content: space-between; 
+    align-items: center;
+    border-bottom: 6px solid #d6d6d6; 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+    height: 30px;
+}
+
+/* ================================================= */
+/* --- Social Icons Styling --- */
+/* ================================================= */
+
+@keyframes icon-pulse {
+    0%, 100% {
+        transform: scale(1);
+        color: #e0e0e0; 
+    }
+    50% {
+        transform: scale(1.1);
+        color: #00e676; 
+    }
+}
+
+#social-media {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-grow: 0; 
+}
+
+#social-media a i {
+    font-size: 1.5em; 
+    transition: none; 
+}
+
+.social-icon-animate {
+    animation: icon-pulse 4s infinite ease-in-out;
+}
+#social-media a:nth-child(2) .social-icon-animate { animation-delay: 0.5s; }
+#social-media a:nth-child(3) .social-icon-animate { animation-delay: 1s; }
+#social-media a:nth-child(4) .social-icon-animate { animation-delay: 1.5s; } 
+
+.follow-text {
+    font-weight: 600; 
+    font-size: 1.5em; 
+    margin-right: 10px;
+    color: #def510; 
+}
+
+/* ================================================= */
+/* --- Main Content Layout --- */
+/* ================================================= */
+
+#content-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 35px;
+    gap: 35px;
+}
+
+#left-sidebar, #right-sidebar {
+    padding: 25px; 
+    background-color: #1f1f1f; 
+    border-radius: 15px; 
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    width: 300px; 
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    order: unset; 
+}
+
+#left-sidebar h2, #right-sidebar h2 {
+    color: #00e676; 
+    text-align: center;
+    border-bottom: 3px solid #00e676; 
+    padding-bottom: 12px;
+    margin-top: 0;
+    font-size: 1.3em;
+}
+
+/* ================================================= */
+/* --- Ad Containers (Left and Right Sidebar) --- */
+/* ================================================= */
+
+#image-ad-container, #image-ad-container-left {
+    color: #ffcc00;
+    text-align: center;
+    font-size: 1.1em;
+    margin: 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ffcc00;
+}
+
+#ad-iframe-wrapper, #ad-iframe-wrapper-left {
+    width: 100%;
+    height: 410px;
+    position: relative;
+}
+
+#animated-ad-iframe-a,
+#animated-ad-iframe-b,
+#animated-ad-iframe-a-left,
+#animated-ad-iframe-b-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity 1s ease-in-out;
+    border: 2px solid #ffcc00;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+    z-index: 10;
+}
+
+#animated-ad-iframe-b,
+#animated-ad-iframe-b-left {
+    opacity: 0;
+    z-index: 5;
+}
+
+.ad-contact-container {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.ad-contact-container[data-iframe="animated-ad-iframe-a"] {
+    background-color: #2a4d69; /* Blue shade for Ad A Right */
+}
+
+.ad-contact-container[data-iframe="animated-ad-iframe-b"] {
+    background-color: #4b2e83; /* Purple shade for Ad B Right */
+}
+
+.ad-contact-container[data-iframe="animated-ad-iframe-a-left"] {
+    background-color: #3d7b3d; /* Green shade for Ad A Left */
+}
+
+.ad-contact-container[data-iframe="animated-ad-iframe-b-left"] {
+    background-color: #7b3d3d; /* Red shade for Ad B Left */
+}
+
+.ad-contact-button {
+    background-color: #25D366; /* WhatsApp green */
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: opacity 1s ease-in-out, background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px auto;
+}
+
+.ad-contact-button i {
+    font-size: 1.2em;
+}
+
+.ad-contact-button:hover {
+    background-color: #1EBE57; /* Darker WhatsApp green on hover */
+    transform: scale(1.05);
+}
+
+.ad-contact-container[data-iframe="animated-ad-iframe-b"] .ad-contact-button,
+.ad-contact-container[data-iframe="animated-ad-iframe-b-left"] .ad-contact-button {
+    opacity: 0;
+}
+
+/* ================================================= */
+/* --- Stream Area (Main Content) --- */
+/* ================================================= */
+
+#video-stream {
+    flex-grow: 1;
+    background-color: #000;
+    box-shadow: 0 0 30px rgb(184, 0, 230);
+    padding: 0;
+    order: unset;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.stream-title {
+    color: #eeff01;
+    padding: 12px 0;
+    background-color: #0d0d0d;
+    margin: 0;
+    font-size: 1.6em;
+    text-align: center;
+    font-weight: 700;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.iframe-wrapper {
+    position: relative;
+    flex-grow: 1;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+#football-stream-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+
+#stream-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #8bff80;
+    font-size: 1.3em;
+    font-weight: 600;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#stream-fallback button {
+    background-color: #00e676;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+#stream-fallback button:hover {
+    background-color: #1ad309;
+}
+
+/* New styles for fullscreen button */
+#fullscreen-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #000000;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    z-index: 15;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#fullscreen-button:hover {
+    background-color: #1ad309;
+    transform: scale(1.05);
+}
+
+/* ================================================= */
+/* --- Scrolling Ad Overlay --- */
+/* ================================================= */
+
+#marquee-overlay {
+    position: relative;
+    width: 100%;
+    z-index: 1;
+    overflow: hidden;
+    height: 35px;
+    pointer-events: none;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+#ad-contact-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 35px;
+    background-color: rgba(0, 0, 0, 0.7);
+    text-decoration: none;
+    pointer-events: auto;
+    border-top: 1px solid #00e676;
+    border-bottom: 1px solid #00e676;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.scrolling-text {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-left: 100%;
+    animation: marquee 15s linear infinite;
+    font-weight: 700;
+    color: #ffcc00;
+    font-size: 0.8em;
+    line-height: 35px;
+}
+
+.contact-button {
+    border: none;
+    outline: none;
+    background-color: #f00;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+}
+
+.contact-button:hover {
+    background-color: #cc0000;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Responsive adjustments for tablet and mobile */
+@media (max-width: 1024px) {
+    .scrolling-text {
+        font-size: 0.75em;
+    }
+    .contact-button {
+        font-size: 0.75em;
+        padding: 2px 5px;
+        margin-left: 5px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 600px) {
+    .scrolling-text {
+        font-size: 0.7em;
+    }
+    .contact-button {
+        font-size: 0.7em;
+        padding: 2px 4px;
+        margin-left: 4px;
+        height: 16px;
+    }
+}
+
+/* ================================================= */
+/* --- Contact Modal --- */
+/* ================================================= */
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.685);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #1f1f1f;
+    color: #e0e0e0;
+    padding: 25px;
+    border-radius: 10px;
+    position: relative;
+    max-width: 90%;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #f00;
+    background: none;
+    border: none;
+}
+
+.close-btn:focus {
+    outline: 2px solid #00e676;
+}
+
+.contact-options {
+    margin-top: 15px;
+}
+
+.contact-options form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contact-options label {
+    font-size: 0.95em;
+    color: #e0e0e0;
+    text-align: left;
+}
+
+.contact-options input,
+.contact-options textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    font-size: 0.95em;
+    box-sizing: border-box;
+}
+
+.contact-options input:focus,
+.contact-options textarea:focus {
+    outline: 2px solid #00e676;
+    border-color: #00e676;
+}
+
+.contact-options textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.contact-options button {
+    background-color: #00e676;
+    color: #fff;
+    border: none;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.3s;
+}
+
+.contact-options button:hover {
+    background-color: #1ad309;
+}
+
+.direct-contact {
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid #555;
+}
+
+.direct-contact p {
+    font-size: 0.85em;
+    color: #e0e0e0;
+    margin: 0 0 8px;
+}
+
+.contact-icons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.contact-icon {
+    color: #00e676;
+    font-size: 1.4em;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.2s;
+}
+
+.contact-icon:hover {
+    color: #ffcc00;
+    transform: scale(1.2);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================================= */
+/* --- News List Styling --- */
+/* ================================================= */
+
+#news-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#news-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #555;
+    cursor: pointer;
+    color: #e0e0e0;
+    font-size: 0.95em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s;
+}
+
+#news-list li:hover {
+    color: #00e676;
+}
+
+#news-list li i {
+    color: #ffcc00;
+}
+
+#news-list li[role="link"]:focus {
+    outline: 2px solid #00e676;
+    outline-offset: 2px;
+}
+
+/* ================================================= */
+/* --- Alternative Streams CTA Section (Buttons) --- */
+/* ================================================= */
+
+#alternative-streams-cta {
+    padding: 20px 0;
+    background-color: #0523cf;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.cta-message {
+    font-size: 1.2em;
+    font-weight: 500;
+    margin-bottom: 35px;
+    color: #ffffff;
+}
+
+#stream-buttons-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 0 10px;
+}
+
+.stream-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 25px;
+    width: 100%;
+    max-width: 150px;
+    background-color: #38003c;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1em;
+    border-radius: 8px;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    border: 2px solid #d7e600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stream-btn i {
+    margin-right: 5px;
+    font-size: 1.2em;
+}
+
+.stream-btn:hover {
+    background-color: #d3c509;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes attention-grabber {
+    0% {
+        box-shadow: 0 0 0 0 rgb(250, 250, 250);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(0, 230, 118, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 230, 118, 0);
+    }
+}
+
+.animated-btn {
+    animation: attention-grabber 2s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+#stream-buttons-container a:nth-child(2) { animation-delay: 0.2s; }
+#stream-buttons-container a:nth-child(3) { animation-delay: 0.4s; }
+#stream-buttons-container a:nth-child(4) { animation-delay: 0.6s; }
+#stream-buttons-container a:nth-child(5) { animation-delay: 0.8s; }
+#stream-buttons-container a:nth-child(6) { animation-delay: 1.0s; }
+#stream-buttons-container a:nth-child(7) { animation-delay: 1.2s; }
+#stream-buttons-container a:nth-child(8) { animation-delay: 1.4s; }
+#stream-buttons-container a:nth-child(9) { animation-delay: 1.6s; }
+
+/* ================================================= */
+/* --- Footer Styling --- */
+/* ================================================= */
+
+footer {
+    background-color: #0d0d0d;
+    padding: 20px;
+    text-align: center;
+    border-top: 2px solid #00e676;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #e0e0e0;
+}
+
+footer a {
+    color: #ffcc00;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+footer a:hover {
+    color: #00e676;
+}
+
+/* ================================== */
+/* --- Responsive Design (Tablet View: max-width 1024px) --- */
+/* ================================== */
+
+@media (max-width: 1024px) {
+    #content-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 20px 15px;
+        gap: 20px;
+    }
+
+    #video-stream {
+        width: calc(66% - 10px);
+        order: 1;
+        flex-grow: 1;
+    }
+
+    #left-sidebar {
+        width: calc(34% - 10px);
+        order: 2;
+        min-width: 250px;
+    }
+
+    #right-sidebar {
+        width: 100%;
+        order: 4;
+    }
+
+    #ad-iframe-wrapper, #ad-iframe-wrapper-left {
+        height: 300px;
+    }
+
+    #alternative-streams-cta {
+        padding: 20px 15px;
+    }
+
+    #stream-buttons-container {
+        padding: 0;
+    }
+
+    .stream-btn {
+        max-width: 300px;
+    }
+
+    footer {
+        padding: 15px;
+    }
+}
+
+/* ================================== */
+/* --- Responsive Design (Mobile View: max-width 600px) --- */
+/* ================================== */
+
+@media (max-width: 600px) {
+    #content-container {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+
+    #left-sidebar {
+        width: 100%;
+        order: 1;
+    }
+
+    #video-stream {
+        width: 100%;
+        order: 2;
+        box-shadow: 0 0 15px rgb(184, 0, 230);
+    }
+
+    #right-sidebar {
+        width: 100%;
+        order: 3;
+    }
+
+    .iframe-wrapper {
+        min-height: 0;
+        padding-top: 56.25%;
+    }
+
+    #ad-iframe-wrapper, #ad-iframe-wrapper-left {
+        height: 200px;
+        transform: rotate(90deg); /* Landscape orientation for container */
+        transform-origin: center;
+        width: 200px; /* Swap width and height for landscape */
+        height: 300px;
+        margin: 50px auto; /* Center the rotated container */
+    }
+
+    #animated-ad-iframe-a,
+    #animated-ad-iframe-b,
+    #animated-ad-iframe-a-left,
+    #animated-ad-iframe-b-left {
+        transform: rotate(-90deg); /* Keep iframe content in portrait */
+        transform-origin: center;
+        width: 300px; /* Original width for portrait content */
+        height: 200px; /* Original height for portrait content */
+        left: -50px; /* Adjust for centering after rotation */
+        top: 50px;
+    }
+
+    .ad-contact-container {
+        transform: rotate(0deg); /* Keep buttons upright */
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    .ad-contact-button {
+        font-size: 0.8em;
+        padding: 6px 12px;
+    }
+
+    #alternative-streams-cta {
+        padding: 20px 0;
+    }
+
+    #stream-buttons-container {
+        padding: 0 15px;
+        gap: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .stream-btn {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .contact-options input,
+    .contact-options textarea {
+        font-size: 0.9em;
+    }
+
+    footer {
+        padding: 10px;
+        font-size: 0.8em;
+    }
+
+    footer a {
+        margin: 0 5px;
+    }
+}

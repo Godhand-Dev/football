@@ -1,0 +1,69 @@
+# robots.txt for https://livefootballmatch.netlify.app/
+# Purpose: Allow full indexing by all reputable search engines
+# Author: Abiola David
+
+# --- General Rules for All Crawlers ---
+User-agent: *
+Allow: /
+Crawl-delay: 10
+Sitemap: https://livefootballmatch.netlify.app/sitemap.xml
+
+# --- Major Search Engine Crawlers ---
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Googlebot-Video
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp    # Yahoo
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# --- Secondary and SEO Tool Crawlers ---
+User-agent: AhrefsBot
+Crawl-delay: 8
+Allow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
+Allow: /
+
+User-agent: MJ12bot
+Crawl-delay: 10
+Allow: /
+
+User-agent: DotBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# --- Notes ---
+# 1. All pages are open for crawling and indexing.
+# 2. Crawl delays prevent excessive requests to your Netlify server.
+# 3. Add Disallow lines below if you create private folders later (e.g., /admin/ or /test/).
+# 4. Your sitemap ensures efficient indexing by all compliant bots.
+
+# Example for future restriction:
+# Disallow: /private/
+# Disallow: /drafts/
