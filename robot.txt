@@ -7,6 +7,7 @@ User-agent: *
 Allow: /
 Crawl-delay: 10
 Sitemap: https://livematch.com.ng/sitemap.xml
+sitemap: https://a519424.sitemaphosting7.com/4623679/sitemap_4623679.xml
 
 # --- Major Search Engine Crawlers ---
 User-agent: Googlebot
@@ -67,6 +68,7 @@ Allow: /
 # Example for future restriction:
 # Disallow: /private/
 # Disallow: /drafts/
+
 
 
 
