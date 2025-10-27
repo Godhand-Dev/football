@@ -1,4 +1,4 @@
-# robots.txt for https://livefootballmatch.netlify.app/
+# robots.txt for https://livematch.com.ng/
 # Purpose: Allow full indexing by all reputable search engines
 # Author: Abiola David
 
@@ -67,5 +67,6 @@ Allow: /
 # Example for future restriction:
 # Disallow: /private/
 # Disallow: /drafts/
+
 
 
