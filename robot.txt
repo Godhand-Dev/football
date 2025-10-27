@@ -6,7 +6,7 @@
 User-agent: *
 Allow: /
 Crawl-delay: 10
-Sitemap: https://livefootballmatch.netlify.app/sitemap.xml
+Sitemap: https://livematch.com/sitemap.xml
 
 # --- Major Search Engine Crawlers ---
 User-agent: Googlebot
@@ -67,3 +67,4 @@ Allow: /
 # Example for future restriction:
 # Disallow: /private/
 # Disallow: /drafts/
+
