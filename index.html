@@ -27,7 +27,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="preload" href="https://tgyh.kora1goal.com/albaplayer/sports-1/?autoplay=1&mute=1" as="document">
     <meta name="application-name" content="Lucid Digital Creatives">
     <script type="application/ld+json">
     {
@@ -47,7 +46,7 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NDSQP7TP"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <header id="main-header">
-        <h1 class="logo"><span class="animated-logo-text">livematch.com.ng</span></h1>
+        <h1 class="logo"><span class="animated-logo-text">Lucid Digital Creatives</span></h1>
         <div id="social-media">
             <span class="follow-text">Follow us:</span>
             <a href="https://web.facebook.com/profile.php?id=61582075502799" aria-label="Facebook"><i class="fab fa-facebook-f social-icon-animate"></i></a>
@@ -71,20 +70,28 @@
                 </div>
             </section>
             <section class="stream-container">
-                <p class="instruction">Don't mind the Ad, if the Ad takes you to another Page please kindly navigate back.</p>
-                <iframe id="stream-iframe" allowfullscreen="true" frameborder="0" scrolling="no" src="https://tgyh.kora1goal.com/albaplayer/sports-1/?autoplay=1&mute=1" width="100%" loading="lazy" title="Live Football Stream"></iframe>
-                <div class="stream-buttons">
-                    <button id="fullscreen-btn"><i class="fas fa-expand"></i> Full Screen</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-1/?autoplay=1&mute=1">Live Link-1</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-2/?autoplay=1&mute=1">Live Link-2</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-3/?autoplay=1&mute=1">Live Link-3</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-4/?autoplay=1&mute=1">Live Link-4</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-5/?autoplay=1&mute=1">Live Link-5</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-6/?autoplay=1&mute=1">Live Link-6</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-7/?autoplay=1&mute=1">Live Link-7</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-8/?autoplay=1&mute=1">Live Link-8</button>
-                    <button data-stream="https://tgyh.kora1goal.com/albaplayer/sports-9/?autoplay=1&mute=1">Live Link-9</button>
-                </div>
+                <p class="instruction">Please dont mind the AD. if the AD takes you to another Page Please Kindly Navigate Back <br>Home Link</p>
+<iframe 
+    id="stream-iframe" 
+    allowfullscreen="true" 
+    src="https://tgyh.kora1goal.com/albaplayer/sports-1?autoplay=1&mute=1" 
+    width="100%" 
+    loading="eager" 
+    allow="autoplay; fullscreen"
+    title="Live Football Stream">
+</iframe>           
+<div class="stream-buttons">
+    <button id="fullscreen-btn"><i class="fas fa-expand"></i> Full Screen</button>
+    <button onclick="window.location.href='link1.html'"><i class="fas fa-play-circle"></i> Live Link-1</button>
+    <button onclick="window.location.href='link2.html'"><i class="fas fa-play-circle"></i> Live Link-2</button>
+    <button onclick="window.location.href='link3.html'"><i class="fas fa-play-circle"></i> Live Link-3</button>
+    <button onclick="window.location.href='link4.html'"><i class="fas fa-play-circle"></i> Live Link-4</button>
+    <button onclick="window.location.href='link5.html'"><i class="fas fa-play-circle"></i> Live Link-5</button>
+    <button onclick="window.location.href='link6.html'"><i class="fas fa-play-circle"></i> Live Link-6</button>
+    <button onclick="window.location.href='link7.html'"><i class="fas fa-play-circle"></i> Live Link-7</button>
+    <button onclick="window.location.href='link8.html'"><i class="fas fa-play-circle"></i> Live Link-8</button>
+    <button onclick="window.location.href='link9.html'"><i class="fas fa-play-circle"></i> Live Link-9</button>
+</div>
                 <div class="scrolling-text">
                     <marquee behavior="scroll" direction="left">For Adverts and Promotion <button id="contact-btn">Contact Us</button>.</marquee>
                 </div>
@@ -105,7 +112,7 @@
     </main>
     <div id="contact-modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close">×</span>
             <h2>Contact Us</h2>
             <form id="contact-form">
                 <label for="name">Name:</label>
