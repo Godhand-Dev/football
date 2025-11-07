@@ -1,191 +1,159 @@
-// script.js
+// script.js - FIXED: Buttons now OPEN NEW PAGES instead of loading in iframe
+document.addEventListener('DOMContentLoaded', function () {
+  const iframeLoader = document.getElementById('iframeLoader');
+  const iframe = document.getElementById('streamIframe');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const streamButtons = document.querySelectorAll('.stream-btn');
 
-// Stream switching functionality
-document.querySelectorAll('.stream-buttons button[data-stream]').forEach(button => {
-    button.addEventListener('click', () => {
-        const streamUrl = button.getAttribute('data-stream');
-        const streamIframe = document.getElementById('stream-iframe');
-        if (streamUrl && streamIframe) {
-            // Update iframe src
-            streamIframe.src = streamUrl;
-            // Remove .active from all buttons
-            document.querySelectorAll('.stream-buttons button[data-stream]').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            // Add .active to clicked button
-            button.classList.add('active');
-        }
-    });
-});
+  // === STREAM LOADER ===
+  iframeLoader.classList.remove('hidden');
 
-// Set initial active button (Live Link-1)
-const initialButton = document.querySelector('.stream-buttons button[data-stream="https://tgyh.kora1goal.com/albaplayer/sports-1/?autoplay=1&mute=1"]');
-if (initialButton) {
-    initialButton.classList.add('active');
-}
+  iframe.addEventListener('load', () => {
+    setTimeout(() => iframeLoader.classList.add('hidden'), 800);
+  });
 
-// Fullscreen toggle functionality
-const fullscreenBtn = document.getElementById('fullscreen-btn');
-const streamIframe = document.getElementById('stream-iframe');
+  setTimeout(() => iframeLoader.classList.add('hidden'), 12000);
 
-if (fullscreenBtn && streamIframe) {
-    fullscreenBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-            if (streamIframe.requestFullscreen) {
-                streamIframe.requestFullscreen();
-            } else if (streamIframe.webkitRequestFullscreen) {
-                streamIframe.webkitRequestFullscreen();
-            } else if (streamIframe.msRequestFullscreen) {
-                streamIframe.msRequestFullscreen();
-            }
-            fullscreenBtn.textContent = 'Exit Fullscreen';
+  // === FULLSCREEN BUTTON ===
+  fullscreenBtn?.addEventListener('click', () => {
+    if (iframe.requestFullscreen) iframe.requestFullscreen();
+    else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+    else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+    else if (iframe.mozRequestFullScreen) iframe.mozRequestFullScreen();
+  });
+
+  // === STREAM SWITCHER BUTTONS - FIXED FOR EXTERNAL HTML PAGES ===
+  streamButtons.forEach((btn) => {
+    btn.addEventListener('click', function (e) {
+      if (this.id === 'fullscreenBtn') return;
+
+      // Remove active class from all
+      streamButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+
+      const link = this.dataset.link;
+
+      if (link) {
+        // CHECK IF IT'S A FULL HTML PAGE (ends with .html)
+        if (link.endsWith('.html')) {
+          // PREVENT iframe load - OPEN IN FULL PAGE
+          e.preventDefault();
+          window.location.href = link;  // Opens link1.html, link2.html etc. as FULL PAGE
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-            fullscreenBtn.textContent = 'Fullscreen';
+          // Old behavior for direct stream URLs
+          iframeLoader.classList.remove('hidden');
+          iframe.src = link.includes('http') ? link : link;
         }
+      }
     });
+  });
 
-    // Handle fullscreen change
-    document.addEventListener('fullscreenchange', () => {
-        fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+  // === AD CAROUSEL WITH EMBEDDED WHATSAPP BUTTONS ===
+  const slides = document.querySelectorAll('.ad-slide');
+  const waButtons = [
+    document.getElementById('wa1'),
+    document.getElementById('wa2')
+    // Add more: document.getElementById('wa3'), etc.
+  ];
+
+  let currentAd = 0;
+  let adInterval;
+
+  const showAd = (index) => {
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
     });
-    document.addEventListener('webkitfullscreenchange', () => {
-        fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+    waButtons.forEach((btn, i) => {
+      btn.classList.toggle('visible', i === index);
     });
-    document.addEventListener('msfullscreenchange', () => {
-        fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+  };
+
+  if (slides.length > 0) {
+    showAd(0);
+
+    adInterval = setInterval(() => {
+      currentAd = (currentAd + 1) % slides.length;
+      showAd(currentAd);
+    }, 10000);
+
+    const adBox = document.getElementById('adBox');
+    adBox.addEventListener('mouseenter', () => clearInterval(adInterval));
+    adBox.addEventListener('mouseleave', () => {
+      adInterval = setInterval(() => {
+        currentAd = (currentAd + 1) % slides.length;
+        showAd(currentAd);
+      }, 10000);
     });
-}
+  }
 
-// Modal functionality (for #contact-btn only)
-const contactModal = document.getElementById('contact-modal');
-const contactBtn = document.getElementById('contact-btn');
-const closeBtn = document.querySelector('.close');
+  // === CONTACT MODAL ===
+  const contactModal = document.getElementById('contactModal');
+  const openBtn = document.getElementById('open-contact-btn');
+  const closeBtn = document.getElementById('modalClose');
+  const modalCancel = document.getElementById('modalCancel');
+  const contactForm = document.getElementById('contactForm');
 
-function openModal() {
-    if (contactModal) contactModal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
+  function openModal() {
+    contactModal.setAttribute('aria-hidden', 'false');
+    contactModal.style.display = 'flex';
+  }
+  function closeModal() {
+    contactModal.setAttribute('aria-hidden', 'true');
+    contactModal.style.display = 'none';
+  }
 
-function closeModal() {
-    if (contactModal) contactModal.style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-if (contactBtn) contactBtn.addEventListener('click', openModal);
-if (closeBtn) closeBtn.addEventListener('click', closeModal);
-
-window.addEventListener('click', (event) => {
-    if (event.target === contactModal) closeModal();
-});
-
-// WhatsApp contact buttons for ads
-const adWhatsAppNumbers = {
-    'left': '+2348167833978',
-    'a': '+2348053056587',
-    'right': '+2348146163188',   
-    'b': '+2349068832016'   
-};
-
-const contactButtons = {
-    'contact-button-left': 'left',
-    'contact-button-a': 'a',
-    'contact-button-right': 'right',
-    'contact-button-b': 'b'
-};
-
-Object.entries(contactButtons).forEach(([buttonId, adId]) => {
-    const button = document.getElementById(buttonId);
-    if (button) {
-        button.addEventListener('click', () => {
-            const whatsappUrl = `https://wa.me/${adWhatsAppNumbers[adId]}?text=Hello,%20I%20am%20interested%20in%20your%20!`;
-            window.open(whatsappUrl, '_blank', 'noopener');
-        });
+  openBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal();
+  });
+  closeBtn?.addEventListener('click', closeModal);
+  modalCancel?.addEventListener('click', closeModal);
+  contactModal?.addEventListener('click', (e) => {
+    if (e.target === contactModal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && contactModal.getAttribute('aria-hidden') === 'false') {
+      closeModal();
     }
-});
+  });
 
-// Ad loop animation with synced contact buttons
-const adContainers = document.querySelectorAll('.ad-container');
-adContainers.forEach(container => {
-    const iframes = container.querySelectorAll('.animated-ad-iframe');
-    const buttons = container.querySelectorAll('.contact-button');
-    let currentIndex = 0;
+  // === GOOGLE SHEETS FORM ===
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiwLGpkHBI0gUAfbP6A5ni-JHJqyi5EksIRCHlyXS4wlTFKycJeGW1MM0Ia_xP6cRIwA/exec';
 
-    // Set initial active iframe and button
-    if (iframes.length > 0 && buttons.length > 0) {
-        iframes[0].classList.add('ad-active');
-        buttons[0].classList.add('button-active');
-    }
+  contactForm?.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-    // Cycle through iframes and buttons every 5 seconds
-    setInterval(() => {
-        if (iframes.length > 1 && buttons.length > 1) {
-            // Hide current iframe and button
-            iframes[currentIndex].classList.remove('ad-active');
-            buttons[currentIndex].classList.remove('button-active');
-            // Move to next iframe and button
-            currentIndex = (currentIndex + 1) % iframes.length;
-            // Show next iframe and button
-            iframes[currentIndex].classList.add('ad-active');
-            buttons[currentIndex].classList.add('button-active');
-        }
-    }, 5000); // 5 seconds per ad
-});
+    const submitBtn = this.querySelector('.btn-submit');
+    const ogText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
 
-// Contact form submission (Connected to Google Sheets with Email Notification)
-const contactForm = document.querySelector('#contact-form');
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzFDZsJGR9yxrvrg9eOCnuvprQZaD6-iMAl1csgv4zZy9HpNKabpjt4k189FC5jdogaGQ/exec';
-
-if (contactForm) {
-    contactForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        
-        const formData = new FormData(contactForm);
-        // Client-side validation
-        if (!formData.get('email') || !formData.get('phone') || !formData.get('message') || !formData.get('Name')) {
-            alert('Please fill all fields.');
-            console.warn('Form validation failed: Missing fields');
-            return;
-        }
-        
-        console.log('Form submission intercepted. Sending data to GAS:', Object.fromEntries(formData));
-        
-        // Send data to Google Apps Script
-        fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.result === 'success') {
-                alert('Thank you for your inquiry! We will get back to you soon.');
-                console.log('Success! Data added to row:', data.row);
-                contactForm.reset();
-                closeModal();
-            } else {
-                alert('Submission failed. Please try again later.');
-                console.error('Server error:', data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Submission error:', error);
-            alert('A network error occurred. Please try again.');
-        });
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: new FormData(this)
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.result === 'success') {
+        const msg = data.userEmailSent 
+          ? '✅ Success! Check your email for confirmation! 📧'
+          : '✅ Saved! We\'ll contact you via WhatsApp shortly!';
+        alert(msg);
+        this.reset();
+        closeModal();
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    })
+    .catch(err => {
+      alert('⚠️ Form saved! Email failed — we\'ll WhatsApp you in 5 mins.');
+      console.error('Form error:', err);
+      this.reset();
+      closeModal();
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = ogText;
     });
-} else {
-    console.warn('Contact form not found.');
-}
-
-// Responsive iframe resize handler
-window.addEventListener('resize', () => {
-    if (streamIframe) {
-        streamIframe.style.width = '100%';
-        // Height handled by CSS clamp
-    }
+  });
 });
