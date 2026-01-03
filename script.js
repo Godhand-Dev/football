@@ -1,159 +1,208 @@
-// script.js - FIXED: Buttons now OPEN NEW PAGES instead of loading in iframe
-document.addEventListener('DOMContentLoaded', function () {
-  const iframeLoader = document.getElementById('iframeLoader');
-  const iframe = document.getElementById('streamIframe');
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
-  const streamButtons = document.querySelectorAll('.stream-btn');
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCGVQc5OP4k9AXlkK6Ld98yvBmODuc0d60",
+  authDomain: "chatapp-5afff.firebaseapp.com",
+  databaseURL: "https://chatapp-5afff-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "chatapp-5afff",
+  storageBucket: "chatapp-5afff.firebasestorage.app",
+  messagingSenderId: "835710769608",
+  appId: "1:835710769608:web:ae974aeab8745fdea848fd",
+  measurementId: "G-V6BH65CXV5"
+};
 
-  // === STREAM LOADER ===
-  iframeLoader.classList.remove('hidden');
-
-  iframe.addEventListener('load', () => {
-    setTimeout(() => iframeLoader.classList.add('hidden'), 800);
-  });
-
-  setTimeout(() => iframeLoader.classList.add('hidden'), 12000);
-
-  // === FULLSCREEN BUTTON ===
-  fullscreenBtn?.addEventListener('click', () => {
-    if (iframe.requestFullscreen) iframe.requestFullscreen();
-    else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
-    else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
-    else if (iframe.mozRequestFullScreen) iframe.mozRequestFullScreen();
-  });
-
-  // === STREAM SWITCHER BUTTONS - FIXED FOR EXTERNAL HTML PAGES ===
-  streamButtons.forEach((btn) => {
-    btn.addEventListener('click', function (e) {
-      if (this.id === 'fullscreenBtn') return;
-
-      // Remove active class from all
-      streamButtons.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-
-      const link = this.dataset.link;
-
-      if (link) {
-        // CHECK IF IT'S A FULL HTML PAGE (ends with .html)
-        if (link.endsWith('.html')) {
-          // PREVENT iframe load - OPEN IN FULL PAGE
-          e.preventDefault();
-          window.location.href = link;  // Opens link1.html, link2.html etc. as FULL PAGE
-        } else {
-          // Old behavior for direct stream URLs
-          iframeLoader.classList.remove('hidden');
-          iframe.src = link.includes('http') ? link : link;
-        }
-      }
-    });
-  });
-
-  // === AD CAROUSEL WITH EMBEDDED WHATSAPP BUTTONS ===
-  const slides = document.querySelectorAll('.ad-slide');
-  const waButtons = [
-    document.getElementById('wa1'),
-    document.getElementById('wa2')
-    // Add more: document.getElementById('wa3'), etc.
-  ];
-
-  let currentAd = 0;
-  let adInterval;
-
-  const showAd = (index) => {
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('active', i === index);
-    });
-    waButtons.forEach((btn, i) => {
-      btn.classList.toggle('visible', i === index);
-    });
+// Modular Functions
+function initFirebase() {
+  firebase.initializeApp(firebaseConfig);
+  return {
+    auth: firebase.auth(),
+    database: firebase.database()
   };
+}
 
-  if (slides.length > 0) {
-    showAd(0);
-
-    adInterval = setInterval(() => {
-      currentAd = (currentAd + 1) % slides.length;
-      showAd(currentAd);
-    }, 10000);
-
-    const adBox = document.getElementById('adBox');
-    adBox.addEventListener('mouseenter', () => clearInterval(adInterval));
-    adBox.addEventListener('mouseleave', () => {
-      adInterval = setInterval(() => {
-        currentAd = (currentAd + 1) % slides.length;
-        showAd(currentAd);
-      }, 10000);
-    });
-  }
-
-  // === CONTACT MODAL ===
-  const contactModal = document.getElementById('contactModal');
-  const openBtn = document.getElementById('open-contact-btn');
-  const closeBtn = document.getElementById('modalClose');
-  const modalCancel = document.getElementById('modalCancel');
-  const contactForm = document.getElementById('contactForm');
-
-  function openModal() {
-    contactModal.setAttribute('aria-hidden', 'false');
-    contactModal.style.display = 'flex';
-  }
-  function closeModal() {
-    contactModal.setAttribute('aria-hidden', 'true');
-    contactModal.style.display = 'none';
-  }
-
-  openBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal();
+function setupAuth(auth, signInButton, logoutButton, provider) {
+  signInButton.addEventListener("click", () => {
+    auth.signInWithPopup(provider)
+      .then((result) => {
+        console.log("Signed in:", result.user.displayName);
+      })
+      .catch((error) => {
+        console.error("Sign-in error:", error);
+        alert("Sign-in failed. Please try again.");
+      });
   });
-  closeBtn?.addEventListener('click', closeModal);
-  modalCancel?.addEventListener('click', closeModal);
-  contactModal?.addEventListener('click', (e) => {
-    if (e.target === contactModal) closeModal();
+
+  logoutButton.addEventListener("click", () => {
+    auth.signOut()
+      .then(() => console.log("Signed out"))
+      .catch((error) => console.error("Sign-out error:", error));
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && contactModal.getAttribute('aria-hidden') === 'false') {
-      closeModal();
+}
+
+function sendMessage(e, auth, messagesRef, messageInput, showChatAndReset) {
+  e.preventDefault();
+  const message = messageInput.value.trim();
+  if (!message) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  messagesRef.push({
+    username: user.displayName || "Anonymous",
+    photoURL: user.photoURL || null,
+    uid: user.uid,
+    message: message,
+    timestamp: Date.now()  // Keep timestamp for sorting, but not displayed
+  });
+
+  messageInput.value = "";
+  showChatAndReset();
+}
+
+// Simplified message rendering: no timestamp, no background bubble
+function addMessageToUI(snapshot, messagesList, showChatAndReset) {
+  const data = snapshot.val();
+
+  const li = document.createElement("li");
+  li.style.cssText = `
+    padding: 4px 0;
+    color: white;
+    font-size: 0.9em;
+    word-wrap: break-word;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    line-height: 1.4;
+  `;
+
+  if (data.photoURL) {
+    const img = document.createElement("img");
+    img.src = data.photoURL;
+    img.alt = data.username;
+    img.style.cssText = `
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-right: 15px;
+      vertical-align: middle;
+      border: 1px solid rgba(255,255,255,0.3);
+    `;
+    li.appendChild(img);
+  }
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = `${data.username}: ${data.message}`;
+  li.appendChild(textSpan);
+
+  messagesList.appendChild(li);
+  messagesList.scrollTop = messagesList.scrollHeight;
+
+  showChatAndReset();
+}
+
+// Chat visibility management
+let chatTimer;
+let isHiddenByClick = false;
+let chatOverlay;
+
+function showChatAndReset() {
+  clearTimeout(chatTimer);
+  isHiddenByClick = false;
+  chatOverlay.classList.add("visible");
+
+  // chatTimer = setTimeout(() => {
+  //   if (!isHiddenByClick) {
+  //     chatOverlay.classList.remove("visible");
+  //   }
+  // }, 6000);
+}
+
+function setupVideoToggle(videoWrapper, auth, showChatAndReset) {
+  videoWrapper.addEventListener("click", (e) => {
+    if (!auth.currentUser) return;
+    e.stopPropagation();
+
+    if (chatOverlay.classList.contains("visible") && !isHiddenByClick) {
+      chatOverlay.classList.remove("visible");
+      clearTimeout(chatTimer);
+      isHiddenByClick = true;
+    } else {
+      showChatAndReset();
+    }
+  });
+}
+
+function setupIframeLogging(iframe) {
+  iframe.addEventListener("load", () => {
+    console.log("Stream loaded");
+  });
+}
+
+// Main initialization
+document.addEventListener("DOMContentLoaded", () => {
+  const { auth, database } = initFirebase();
+  const messagesRef = database.ref("messages");
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  // DOM Elements
+  const signInButton = document.getElementById("google-signin");
+  const logoutButton = document.getElementById("logout");
+  const messagesList = document.getElementById("messages");
+  const messageForm = document.querySelector(".message-form");
+  const messageInput = document.querySelector(".message-input");
+  chatOverlay = document.getElementById("chat-overlay");
+  const chatInput = document.getElementById("chat-input");
+  const chatPrompt = document.querySelector(".chat-prompt");
+  const iframe = document.getElementById("stream-iframe");
+  const videoWrapper = document.querySelector(".video-wrapper");
+
+  setupAuth(auth, signInButton, logoutButton, provider);
+  setupVideoToggle(videoWrapper, auth, showChatAndReset);
+  setupIframeLogging(iframe);
+
+  // Form submit handler
+  function sendMessageHandler(e) {
+    sendMessage(e, auth, messagesRef, messageInput, showChatAndReset);
+  }
+
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      signInButton.style.display = "none";
+      logoutButton.style.display = "block";
+      chatInput.style.display = "block";
+      chatPrompt.style.display = "none";
+
+      // Attach submit listener
+      messageForm.removeEventListener("submit", sendMessageHandler);
+      messageForm.addEventListener("submit", sendMessageHandler);
+
+      // Load recent messages
+      messagesRef.orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => {
+        addMessageToUI(snapshot, messagesList, showChatAndReset);
+      });
+
+      // Interaction triggers
+      showChatAndReset();
+      chatOverlay.addEventListener("mouseenter", showChatAndReset);
+      chatOverlay.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        showChatAndReset();
+      });
+      messageInput.addEventListener("focus", showChatAndReset);
+
+    } else {
+      signInButton.style.display = "flex";
+      logoutButton.style.display = "none";
+      chatInput.style.display = "none";
+      chatPrompt.style.display = "block";
+
+      messagesList.innerHTML = "";
+      messagesRef.off("child_added");
+      messageForm.removeEventListener("submit", sendMessageHandler);
+
+      clearTimeout(chatTimer);
+      chatOverlay.classList.remove("visible");
+      isHiddenByClick = false;
     }
   });
 
-  // === GOOGLE SHEETS FORM ===
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiwLGpkHBI0gUAfbP6A5ni-JHJqyi5EksIRCHlyXS4wlTFKycJeGW1MM0Ia_xP6cRIwA/exec';
-
-  contactForm?.addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const submitBtn = this.querySelector('.btn-submit');
-    const ogText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
-
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: new FormData(this)
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.result === 'success') {
-        const msg = data.userEmailSent 
-          ? '✅ Success! Check your email for confirmation! 📧'
-          : '✅ Saved! We\'ll contact you via WhatsApp shortly!';
-        alert(msg);
-        this.reset();
-        closeModal();
-      } else {
-        throw new Error(data.error || 'Unknown error');
-      }
-    })
-    .catch(err => {
-      alert('⚠️ Form saved! Email failed — we\'ll WhatsApp you in 5 mins.');
-      console.error('Form error:', err);
-      this.reset();
-      closeModal();
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = ogText;
-    });
-  });
+  // Ensure full transparency for chat overlay
+  chatOverlay.style.background = "transparent";
 });
