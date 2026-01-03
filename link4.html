@@ -53,185 +53,124 @@
 </head>
 <body>
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NDSQP7TP" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  
-  <header>
-    <div class="header-inner container">
-      <div class="brand">
-        <h1>LiveMatch Nigeria</h1>
-        <p class="tag">Watch Live Football Streams in HD — Anytime, Anywhere</p>
-      </div>
-      <div class="socials">
-        <a href="https://web.facebook.com/profile.php?id=61582075502799" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-        <a href="https://www.linkedin.com/in/abiola-david001" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-        <a href="https://x.com/@AbiolaDavi64527" target="_blank" aria-label="X"><i class="fab fa-x-twitter"></i></a>
-        <a href="mailto:info@lucidedigital.com" aria-label="Gmail"><i class="fas fa-envelope"></i></a>
-        <a href="https://www.twitch.tv" target="_blank" aria-label="Twitch"><i class="fab fa-twitch"></i></a>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <h1 class="site-title">LiveMatch Nigeria</h1>
+      <p class="site-subtitle">We show all live matches across Europe's Top Leagues & World Competitions</p>
+      <div class="leagues-showcase">
+        <div class="league-item"><i class="fa-solid fa-shirt"></i><span>Premier League</span><small>England</small></div>
+        <div class="league-item"><i class="fa-solid fa-shirt"></i><span>La Liga</span><small>Spain</small></div>
+        <div class="league-item"><i class="fa-solid fa-shirt"></i><span>Bundesliga</span><small>Germany</small></div>
+        <div class="league-item"><i class="fa-solid fa-shirt"></i><span>Serie A</span><small>Italy</small></div>
+        <div class="league-item"><i class="fa-solid fa-shirt"></i><span>Ligue 1</span><small>France</small></div>
+        <div class="league-item"><i class="fa-solid fa-trophy"></i><span>Champions League</span><small>Europe</small></div>
+        <div class="league-item"><i class="fa-solid fa-trophy"></i><span>Europa League</span><small>Europe</small></div>
+        <div class="league-item"><i class="fa-solid fa-earth-americas"></i><span>World Cup</span><small>Global</small></div>
+        <div class="league-item"><i class="fa-solid fa-earth-africa"></i><span>AFCON</span><small>Africa</small></div>
+        <div class="league-item"><i class="fa-solid fa-earth-americas"></i><span>Copa América</span><small>S. America</small></div>
+        <div class="league-item"><i class="fa-solid fa-trophy"></i><span>Euros</span><small>Europe</small></div>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <section class="stream-container">
-      <h2>Live Stream - Today's Match</h2>
-
-      <div class="iframe-wrapper">
-       <iframe
-  id="streamIframe"
-  src="https://pww1a3caoxythv5bdfjgphu1sduh6vmqvrrznohu2s9jqcfmwy.sokii.shop/player.php?match=match1&key=c0ae1ada6eebd7e6cc5b88b1d2b71547?autoplay=1&mute=1"
-  title="Live Football Match"
-  allow="autoplay; fullscreen"
-  loading="lazy">
-</iframe>
-        
-        <div id="iframeLoader" class="iframe-loader">
-          <div class="loader">
-            <i class="fas fa-futbol"></i>
-            <p>Stay Calm — Match is Loading...</p>
-          </div>
-        </div>
+  <!-- Main Content -->
+  <main class="main-container">
+    <!-- Video Section -->
+    <section class="video-section">
+      <div class="video-wrapper">
+        <iframe id="stream-iframe"
+          src="https://eyj0exaioijkv1qilcjhbgcioijiuzi1nij9.aleynoxitram.sbs/player.php?match=match10&key=c0ae1ada6eebd7e6cc5b88b1d2b71547&autoplay=1&mute=1" 
+          width="100%" 
+          height="550"
+          allowfullscreen 
+          frameborder="0"
+          loading="eager">
+        </iframe>
       </div>
 
-      <div class="promo-marquee">
-        <marquee behavior="scroll" direction="left">
-          For Advert and Promotion
-          <button id="open-contact-btn" class="btn-marquee">Contact Us</button>
-        </marquee>
+      <!-- Sign-in Prompt -->
+      <div class="chat-prompt">
+        <p>The game is more fun—log in to chat with football fans while watching the match.</p>
       </div>
 
-      <div class="stream-buttons" id="streamButtons">
-        <button id="fullscreenBtn" class="stream-btn fullscreen-btn">
-          <i class="fas fa-expand"></i> Fullscreen
+      <!-- Google Sign-in & Logout Buttons -->
+      <div class="auth-buttons">
+        <button id="google-signin" class="google-signin-btn">
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18px" height="18px">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+            <path fill="none" d="M0 0h48v48H0z"></path>
+          </svg>
+          <span>Sign in with Google</span>
         </button>
-        <button class="stream-btn active" data-link="index.html">Home</button>
-        <button class="stream-btn" data-link="link1.html">Link 1</button>
-        <button class="stream-btn" data-link="link2.html">Link 2</button>
-        <button class="stream-btn" data-link="link3.html">Link 3</button>
-        <button class="stream-btn" data-link="link5.html">Link 5</button>
-        <button class="stream-btn" data-link="link6.html">Link 6</button>
-        <button class="stream-btn" data-link="link7.html">Link 7</button>
-        <button class="stream-btn" data-link="link8.html">Link 8</button>
-        <button class="stream-btn" data-link="link9.html">Link 9</button>
-      </div>
-    </section>
 
-    <section class="ad-section" aria-label="Sponsored Advertisement">
-      <h2>if the match you want to watch is not on the current link, kindly check other links above</h2>
-      <div class="ad-box" id="adBox">
-        <div class="ad-carousel">
-          <!-- Ad 1 -->
-          <div class="ad-slide active">
-            <iframe src="https://www.canva.com/design/DAG21mtHsH0/WPl8TBsRzsa-PxjAD0EfvQ/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen"></iframe>
-          </div>
-          <!-- Ad 2 (replace with your second Canva link) -->
-          <div class="ad-slide">
-            <iframe src="https://www.canva.com/design/DAG2vc67Jng/fLz6xAzQSdhDIrZnqo22bQ/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen"></iframe>
-          </div>
-        </div>
-
-        <!-- WhatsApp buttons embedded directly in HTML (no JS dependency for links) -->
-        <div class="ad-whatsapp" id="wa1">
-          <a href="https://wa.me/+2348167833978" target="_blank" rel="noopener" aria-label="Contact Seller on WhatsApp">
-            <span class="wa-icon"><i class="fab fa-whatsapp"></i></span>
-          </a>
-        </div>
-        <div class="ad-whatsapp" id="wa2">
-          <a href="https://wa.me/+2348053056587" target="_blank" rel="noopener" aria-label="Contact Seller on WhatsApp">
-            <span class="wa-icon"><i class="fab fa-whatsapp"></i></span>
-          </a>
-        </div>
+        <button id="logout" class="logout-btn">Logout</button>
       </div>
+      
+      <!-- New Chat Box -->
+      <p class="chat-read-prompt">Read chat and comments from fans around the world</p>
+      <div id="chat-box" class="chat-box">
+        <ul id="messages"></ul>
+      </div>
+
+      <!-- Chat Input moved up -->
+      <div class="chat-input" id="chat-input">
+        <form id="message-form" class="message-form">
+          <input 
+            id="message-input" 
+            type="text" 
+            class="message-input" 
+            placeholder="Type your comment..." 
+            required 
+            autocomplete="off"
+          >
+          <button type="submit">Send</button>
+        </form>
+      </div>
+
+      <!-- CTA for Alternative Links -->
+      <div class="links-prompt">
+        <p>Match not loading? Check the alternative links below for other live streams.</p>
+      </div>
+
+      <!-- Alternative Links (now as anchors leading to new pages) -->
+      <div class="alternative-links">
+        <a class="alt-link" href="index.html" target="_blank"><i class="fa-solid fa-link"></i>Home</a>
+        <a class="alt-link" href="link1.html" target="_blank"><i class="fa-solid fa-link"></i>Link-1</a>
+        <a class="alt-link" href="link2.html" target="_blank"><i class="fa-solid fa-link"></i>Link-2</a>
+        <a class="alt-link" href="link3.html" target="_blank"><i class="fa-solid fa-link"></i>Link-3</a>
+        <a class="alt-link" href="link5.html" target="_blank"><i class="fa-solid fa-link"></i>Link-5</a>
+        <a class="alt-link" href="link6.html" target="_blank"><i class="fa-solid fa-link"></i>Link-6</a>
+        <a class="alt-link" href="link7.html" target="_blank"><i class="fa-solid fa-link"></i>Link-7</a>
+        <a class="alt-link" href="link8.html" target="_blank"><i class="fa-solid fa-link"></i>Link-8</a>
+        <a class="alt-link" href="link9.html" target="_blank"><i class="fa-solid fa-link"></i>Link-9</a>
+        <a class="alt-link" href="link10.html" target="_blank"><i class="fa-solid fa-link"></i>Link-10</a>
+      </div>
+
     </section>
   </main>
 
-  <!-- Contact Modal -->
-  <div id="contactModal" class="modal" aria-hidden="true">
-    <div class="modal-content">
-      <button class="modal-close" id="modalClose" aria-label="Close modal">&times;</button>
-      <div class="modal-marquee">
-        <marquee behavior="scroll" direction="left" scrollamount="3">
-          <strong>Advert Enquiry Form</strong>
-        </marquee>
-
-        <form id="contactForm" class="contact-form">
-          <label for="name">Name</label>
-          <input id="name" name="name" type="text" required />
-
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" required />
-
-          <label for="purpose">Purpose</label>
-          <select id="purpose" name="purpose" required>
-            <option value="" disabled selected>Select purpose</option>
-            <option value="Advertisement">Advertisement</option>
-            <option value="Web Development">Web Development</option>
-            <option value="Business Consultation">Business Consultation</option>
-            <option value="Promotions">Promotions</option>
-            <option value="Marketing">Marketing</option>
-          </select>
-
-          <label for="phone">Phone Number</label>
-          <input id="phone" name="phone" type="tel" required />
-
-          <label for="message">Message (Optional)</label>
-          <textarea id="message" name="message" rows="4" placeholder="Tell us more about your needs..."></textarea>
-
-          <div class="modal-actions">
-            <button type="submit" class="btn-submit">Send Inquiry</button>
-            <button type="button" id="modalCancel" class="btn-cancel">Cancel</button>
-          </div>
-
-          <div class="modal-footer-contacts">
-            <a href="https://wa.me/+2349034927148" target="_blank" rel="noopener" class="modal-wa"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-            <a href="tel:+2349034927148" class="modal-phone"><i class="fas fa-phone"></i> Call</a>
-          </div>
-        </form>
-      </div>
+  <!-- Footer -->
+  <footer class="site-footer">
+    <nav class="footer-nav">
+      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/terms-conditions.html">Terms & Conditions</a>
+    </nav>
+    <!-- Stream Tip moved into footer -->
+    <div class="stream-tip">
+      <p>If the match stops streaming, kindly reload the webpage.</p>
     </div>
-  </div>
-
-  <footer>
-    <div class="container footer-inner">
-      <p>&copy; 2025 LiveMatch Nigeria | Designed by <a href="https://abioladavid.github.io/myportfollio/" target="_blank">Lucid Digital Creatives</a></p>
-      <nav class="footer-nav">
-        <a href="privacy_policy.html">Privacy</a>
-        <a href="disclaimer.html">Disclaimer</a>
-        <a href="terms_condition.html">Terms</a>
-      </nav>
-    </div>
+    <p class="footer-copyright">&copy; 2025 Livematch.com.ng</p>
   </footer>
 
-  <script src="script.js"></script>
-  <script>
-    // Pure visibility toggle - NO JS link changing, all WhatsApp links are hard-coded in HTML
-    document.addEventListener('DOMContentLoaded', () => {
-      const slides = document.querySelectorAll('.ad-slide');
-      const waButtons = [document.getElementById('wa1'), document.getElementById('wa2')];
-      let current = 0;
-
-      const showSlide = (index) => {
-        slides.forEach((s, i) => s.classList.toggle('active', i === index));
-        waButtons.forEach((b, i) => b.classList.toggle('visible', i === index));
-      };
-
-      showSlide(0); // Start with first ad + first WA
-
-      // Auto-rotate every 10 seconds
-      setInterval(() => {
-        current = (current + 1) % slides.length;
-        showSlide(current);
-      }, 10000);
-
-      // Pause on hover
-      const carousel = document.querySelector('.ad-carousel');
-      let interval;
-      carousel.addEventListener('mouseenter', () => clearInterval(interval));
-      carousel.addEventListener('mouseleave', () => {
-        interval = setInterval(() => {
-          current = (current + 1) % slides.length;
-          showSlide(current);
-        }, 10000);
-      });
-    });
-  </script>
+  <!-- Firebase SDKs (with defer for non-critical) -->
+  <script defer src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+  <script defer src="script.js"></script>
 </body>
 </html>
+
