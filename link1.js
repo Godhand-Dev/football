@@ -37,6 +37,7 @@ class FirebaseChat {
     this.messagesRef = firebase.firestore().collection('matches').doc('live-match').collection('messages');
     this.unsubscribe = null;
     this.loadedMessageIds = new Set();
+    this.messageElements = new Map();
   }
 
   init() {
@@ -50,6 +51,12 @@ class FirebaseChat {
         console.log('🚪 User logged out');
         if (this.unsubscribe) this.unsubscribe();
         this.setUserPresence(false);
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.message-actions')) {
+        this.closeOpenMenus();
       }
     });
   }
@@ -67,6 +74,10 @@ class FirebaseChat {
             if (change.type === 'added' && !this.loadedMessageIds.has(msg.id)) {
               this.addMessageToUI(msg);
               this.loadedMessageIds.add(msg.id);
+            } else if (change.type === 'modified' && this.messageElements.has(msg.id)) {
+              this.updateMessageInUI(msg);
+            } else if (change.type === 'removed' && this.messageElements.has(msg.id)) {
+              this.removeMessageFromUI(msg.id);
             }
           });
           this.scrollToBottom();
@@ -125,39 +136,142 @@ class FirebaseChat {
       </div>
       <div class="message-content">
         <div class="message-header">
-          <span class="message-username">${this.escapeHtml(message.username)}</span>
-          ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
-          <span class="message-time">${timestamp}</span>
-          ${message.edited ? '<span class="message-edited">(edited)</span>' : ''}
+          <div>
+            <span class="message-username">${this.escapeHtml(message.username)}</span>
+            ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
+          </div>
+          <div>
+            <span class="message-time">${timestamp}</span>
+            ${message.edited ? '<span class="message-edited">(edited)</span>' : ''}
+          </div>
         </div>
         <p class="message-text">${this.escapeHtml(message.text)}</p>
       </div>
       ${isCurrentUser ? `
         <div class="message-actions">
-          <button class="msg-delete" data-id="${message.id}" title="Delete">
-            <i class="fas fa-trash"></i>
+          <button class="message-menu-btn" type="button" data-id="${message.id}" title="Message options">
+            <i class="fas fa-ellipsis-v"></i>
           </button>
         </div>
       ` : ''}
     `;
 
-    // Attach delete event listener
     if (isCurrentUser) {
-      const deleteBtn = messageEl.querySelector('.msg-delete');
-      if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => {
-          this.deleteMessage(message.id);
+      const menuBtn = messageEl.querySelector('.message-menu-btn');
+      if (menuBtn) {
+        menuBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          this.toggleMessageMenu(messageEl, message.id, message.text);
         });
       }
     }
 
     this.messagesList.appendChild(messageEl);
+    this.messageElements.set(message.id, messageEl);
 
     // Limit messages
     if (this.messagesList.children.length > 100) {
       const oldMsg = this.messagesList.children[0];
-      if (oldMsg.dataset.messageId) this.loadedMessageIds.delete(oldMsg.dataset.messageId);
+      if (oldMsg.dataset.messageId) {
+        this.loadedMessageIds.delete(oldMsg.dataset.messageId);
+        this.messageElements.delete(oldMsg.dataset.messageId);
+      }
       oldMsg.remove();
+    }
+  }
+
+  updateMessageInUI(message) {
+    const existing = this.messageElements.get(message.id);
+    if (!existing) return;
+
+    const timeEl = existing.querySelector('.message-time');
+    const editedEl = existing.querySelector('.message-edited');
+    const textEl = existing.querySelector('.message-text');
+    const usernameEl = existing.querySelector('.message-username');
+    const avatarImg = existing.querySelector('.message-avatar img');
+
+    if (usernameEl) usernameEl.textContent = this.escapeHtml(message.username);
+    if (avatarImg) avatarImg.src = message.userAvatar || this.getDefaultAvatar(message.username);
+    if (textEl) textEl.innerHTML = this.escapeHtml(message.text);
+    if (timeEl) timeEl.textContent = message.timestamp ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
+
+    if (message.edited) {
+      if (!editedEl) {
+        const header = existing.querySelector('.message-header');
+        if (header) {
+          const span = document.createElement('span');
+          span.className = 'message-edited';
+          span.textContent = '(edited)';
+          header.appendChild(span);
+        }
+      }
+    } else if (editedEl) {
+      editedEl.remove();
+    }
+  }
+
+  removeMessageFromUI(messageId) {
+    const existing = this.messageElements.get(messageId);
+    if (!existing) return;
+    existing.remove();
+    this.messageElements.delete(messageId);
+    this.loadedMessageIds.delete(messageId);
+  }
+
+  closeOpenMenus() {
+    this.messagesList.querySelectorAll('.message-menu').forEach((menu) => menu.remove());
+  }
+
+  toggleMessageMenu(messageEl, messageId, messageText) {
+    const actions = messageEl.querySelector('.message-actions');
+    if (!actions) return;
+
+    const existingMenu = actions.querySelector('.message-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+      return;
+    }
+
+    this.closeOpenMenus();
+
+    const menu = document.createElement('div');
+    menu.className = 'message-menu';
+    menu.innerHTML = `
+      <button type="button" class="message-menu-item message-edit" data-id="${messageId}">
+        <i class="fas fa-edit"></i> Edit
+      </button>
+      <button type="button" class="message-menu-item message-delete" data-id="${messageId}">
+        <i class="fas fa-trash-alt"></i> Delete
+      </button>
+    `;
+
+    actions.appendChild(menu);
+
+    menu.querySelector('.message-edit')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.editMessage(messageId, messageText);
+      menu.remove();
+    });
+
+    menu.querySelector('.message-delete')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.deleteMessage(messageId);
+      menu.remove();
+    });
+  }
+
+  async editMessage(messageId, currentText) {
+    const newText = prompt('Edit your message:', currentText);
+    if (newText === null || !newText.trim()) return;
+
+    try {
+      const snapshot = await this.messagesRef.where('id', '==', messageId).get();
+      snapshot.forEach((doc) => {
+        doc.ref.update({ text: newText.trim(), edited: true });
+      });
+      console.log('✏️ Message updated');
+    } catch (error) {
+      console.error('❌ Error editing message:', error);
     }
   }
 
@@ -238,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const elements = {
     playerOverlay: document.getElementById('playerOverlay'),
     refreshBtn: document.getElementById('refreshBtn'),
-    altLinksBtn: document.getElementById('altLinksBtn'),
+    bottomRefreshBtn: document.getElementById('bottomRefreshBtn'),
     chatBox: document.getElementById('chat-box'),
     messagesList: document.getElementById('messages'),
     messageForm: document.getElementById('message-form'),
@@ -329,10 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupEventListeners() {
     elements.refreshBtn?.addEventListener('click', refreshStream);
-    elements.altLinksBtn?.addEventListener('click', (e) => { 
-      e.preventDefault(); 
-      showToast('🔗 Alternative links opened in new tab'); 
-    });
+    elements.bottomRefreshBtn?.addEventListener('click', refreshStream);
     
     elements.messageForm?.addEventListener('submit', handleSendMessage);
     elements.chatBox?.addEventListener('scroll', handleChatScroll);
