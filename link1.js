@@ -276,33 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applySavedTheme();
     setupAuthListener();
 
-    // Initialize Google Identity Services (GSI)
-    // Uses a retry mechanism to ensure the 'google' library is ready
-    function initGoogleAuth() {
-      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-        google.accounts.id.initialize({
-          // ⚠️ IMPORTANT: Replace with your actual Client ID from Google Cloud Console
-          client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-          callback: handleCredentialResponse,
-          auto_select: false
-        });
-        
-        if (elements.googleSigninBtn) {
-          google.accounts.id.renderButton(
-            elements.googleSigninBtn,
-            { theme: "outline", size: "large", width: "100%" }
-          );
-        }
-        
-        // Optional: Displays the One Tap prompt
-        google.accounts.id.prompt(); 
-      } else {
-        // Library not ready yet, retry in 100ms
-        setTimeout(initGoogleAuth, 100);
-      }
-    }
-    initGoogleAuth();
-
     // Initialize Firebase Chat
     try {
       firebaseChatInstance = new FirebaseChat(
@@ -370,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.messageForm?.addEventListener('submit', handleSendMessage);
     elements.chatBox?.addEventListener('scroll', handleChatScroll);
     elements.chatScrollHint?.addEventListener('click', scrollToBottom);
+    elements.googleSigninBtn?.addEventListener('click', handleGoogleSignin);
     
     elements.logoutBtn?.addEventListener('click', handleLogout);
     elements.themeToggle?.addEventListener('click', toggleTheme);
@@ -444,18 +418,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Auth Functions
-  function handleCredentialResponse(response) {
-    console.log("🔑 Google Credential received");
-    // Sign in to Firebase using the credential from the Google Identity Services
-    const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+  function handleGoogleSignin(e) {
+    if (e) e.preventDefault();
+    console.log('🔐 Initiating Google Sign-In...');
     
-    firebase.auth().signInWithCredential(credential)
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    
+    firebase.auth().signInWithPopup(provider)
       .then((result) => {
         console.log('✅ Sign-in successful:', result.user.displayName);
+        showToast(`✅ Signed in as ${result.user.displayName}`);
       })
       .catch((error) => {
-        console.error('❌ Sign-in error:', error);
-        showToast(`❌ Sign-in failed: ${error.message}`);
+        console.error('❌ Sign-in error:', error.code, error.message);
+        let msg = 'Sign-in failed. ';
+        if (error.code === 'auth/popup-blocked') msg += 'Please allow popups for this site.';
+        else if (error.code === 'auth/unauthorized-domain') msg += 'Domain not authorized in Firebase Console.';
+        else msg += error.message;
+        showToast(msg);
       });
   }
 
