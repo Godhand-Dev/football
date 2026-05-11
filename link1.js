@@ -1,12 +1,8 @@
 /**
  * Livematch.com.ng - Complete JavaScript Bundle
  * Combines: Firebase Config, Firebase Chat Class, and Main App Logic
- * Usage: Replace existing script tags with this single file (e.g., main.js)
  */
 
-// ==========================================
-// 1. FIREBASE CONFIGURATION & INITIALIZATION
-// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCGVQc5OP4k9AXlkK6Ld98yvBmODuc0d60",
   authDomain: "chatapp-5afff.firebaseapp.com",
@@ -25,7 +21,7 @@ try {
   console.error('❌ Firebase initialization error:', error);
 }
 
-// Expose services globally for compat usage
+// Expose services globally
 window.firebaseAuth = firebase.auth();
 window.firebaseDb = firebase.firestore();
 
@@ -150,7 +146,6 @@ class FirebaseChat {
     
     this.messagesList.appendChild(messageEl);
 
-    // DOM Performance: Limit rendered messages to 100
     if (this.messagesList.children.length > 100) {
       const oldMsg = this.messagesList.children[0];
       if (oldMsg.dataset.messageId) this.loadedMessageIds.delete(oldMsg.dataset.messageId);
@@ -267,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let firebaseChatInstance = null;
 
-  // Initialize App
   init();
 
   function init() {
@@ -276,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applySavedTheme();
     setupAuthListener();
 
-    // Initialize Firebase Chat
     try {
       firebaseChatInstance = new FirebaseChat(
         elements.messagesList,
@@ -284,13 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.messageInput,
         elements.messageForm
       );
-      window.firebaseChat = firebaseChatInstance; // Expose for inline onclick handlers
+      window.firebaseChat = firebaseChatInstance;
       firebaseChatInstance.init();
     } catch (error) {
       console.error('❌ Failed to initialize Firebase Chat:', error);
     }
 
-    // Online user counter
     if (firebaseChatInstance) {
       firebaseChatInstance.getOnlineUserCount((count) => {
         if (elements.userCount) {
@@ -301,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Auth State Listener
   function setupAuthListener() {
     firebase.auth().onAuthStateChanged((user) => {
       state.currentUser = user;
@@ -311,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Particle Animation
   function createParticles() {
     if (!elements.particlesContainer) return;
     const particleCount = window.innerWidth > 768 ? 30 : 15;
@@ -332,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Event Listeners Setup
   function setupEventListeners() {
     elements.refreshBtn?.addEventListener('click', refreshStream);
     elements.altLinksBtn?.addEventListener('click', (e) => { 
@@ -365,7 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Stream Functions
   function refreshStream() {
     showToast('🔄 Refreshing stream...');
     const iframe = document.querySelector('.player-container iframe');
@@ -380,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Chat Functions
   function handleSendMessage(e) {
     e.preventDefault();
     if (!state.isUserLoggedIn) {
@@ -417,15 +404,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Auth Functions
+  // ==================== FIXED GOOGLE SIGN-IN ====================
   function handleGoogleSignin(e) {
     if (e) e.preventDefault();
-    console.log('🔐 Initiating Google Sign-In...');
-    
+    console.log('🔐 Google Sign-In triggered');
+
+    if (!firebase || !firebase.auth) {
+      showToast('❌ Firebase not loaded. Please refresh the page.');
+      return;
+    }
+
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.addScope('profile');
     provider.addScope('email');
-    
+
     firebase.auth().signInWithPopup(provider)
       .then((result) => {
         console.log('✅ Sign-in successful:', result.user.displayName);
@@ -444,24 +436,24 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleLogout(e) {
     if (e) e.preventDefault();
     firebase.auth().signOut()
+      .then(() => showToast('👋 Logged out successfully'))
       .catch((error) => showToast('❌ Logout failed'));
   }
 
   function updateAuthUI(user) {
     if (user) {
-      elements.googleSigninBtn?.style.display = 'none';
+      elements.googleSigninBtn.style.display = 'none';
       if (elements.userProfile) {
         elements.userProfile.style.display = 'flex';
         if (elements.userAvatar && user.photoURL) elements.userAvatar.src = user.photoURL;
         if (elements.userName) elements.userName.textContent = user.displayName || user.email;
       }
     } else {
-      elements.googleSigninBtn?.style.display = 'flex';
+      elements.googleSigninBtn.style.display = 'flex';
       if (elements.userProfile) elements.userProfile.style.display = 'none';
     }
   }
 
-  // Theme Functions
   function toggleTheme() {
     state.isDarkMode = !state.isDarkMode;
     document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
@@ -486,13 +478,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Mobile Menu
   function toggleMobileMenu() {
     elements.mobileMenuOverlay?.classList.toggle('active');
     document.body.style.overflow = elements.mobileMenuOverlay?.classList.contains('active') ? 'hidden' : '';
   }
 
-  // Toast Notifications
   function showToast(message, duration = 3000) {
     if (!elements.toast || !elements.toastMessage) return;
     elements.toastMessage.textContent = message;
@@ -500,7 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => elements.toast.classList.remove('show'), duration);
   }
 
-  // Utility: Debounce
   function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
