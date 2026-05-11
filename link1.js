@@ -129,6 +129,7 @@ class FirebaseChat {
     const timestamp = message.timestamp 
       ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       : 'now';
+    const timeClass = timestamp === 'now' ? 'message-time now' : 'message-time';
 
     messageEl.innerHTML = `
       <div class="message-avatar">
@@ -136,16 +137,14 @@ class FirebaseChat {
       </div>
       <div class="message-content">
         <div class="message-header">
-          <div>
-            <span class="message-username">${this.escapeHtml(message.username)}</span>
-            ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
-          </div>
-          <div>
-            <span class="message-time">${timestamp}</span>
-            ${message.edited ? '<span class="message-edited">(edited)</span>' : ''}
-          </div>
+          <span class="message-username">${this.escapeHtml(message.username)}</span>
+          ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
         </div>
         <p class="message-text">${this.escapeHtml(message.text)}</p>
+        <div class="message-meta">
+          <span class="${timeClass}">${timestamp}</span>
+          ${message.edited ? '<span class="message-edited">(edited)</span>' : ''}
+        </div>
       </div>
       ${isCurrentUser ? `
         <div class="message-actions">
@@ -193,16 +192,20 @@ class FirebaseChat {
     if (usernameEl) usernameEl.textContent = this.escapeHtml(message.username);
     if (avatarImg) avatarImg.src = message.userAvatar || this.getDefaultAvatar(message.username);
     if (textEl) textEl.innerHTML = this.escapeHtml(message.text);
-    if (timeEl) timeEl.textContent = message.timestamp ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
+    const timeText = message.timestamp ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
+    if (timeEl) {
+      timeEl.textContent = timeText;
+      timeEl.classList.toggle('now', timeText === 'now');
+    }
 
     if (message.edited) {
       if (!editedEl) {
-        const header = existing.querySelector('.message-header');
-        if (header) {
+        const meta = existing.querySelector('.message-meta');
+        if (meta) {
           const span = document.createElement('span');
           span.className = 'message-edited';
           span.textContent = '(edited)';
-          header.appendChild(span);
+          meta.appendChild(span);
         }
       }
     } else if (editedEl) {
