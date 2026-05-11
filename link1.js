@@ -38,6 +38,7 @@ class FirebaseChat {
     this.unsubscribe = null;
     this.loadedMessageIds = new Set();
     this.messageElements = new Map();
+    this.userColors = new Map();
   }
 
   init() {
@@ -126,18 +127,20 @@ class FirebaseChat {
 
     const isCurrentUser = this.currentUser && this.currentUser.uid === message.userId;
     const avatarUrl = message.userAvatar || this.getDefaultAvatar(message.username);
+    const userColor = this.getUserColor(message.username);
     const timestamp = message.timestamp 
       ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       : 'now';
     const timeClass = timestamp === 'now' ? 'message-time now' : 'message-time';
 
+    messageEl.style.borderLeft = `4px solid ${userColor}`;
     messageEl.innerHTML = `
-      <div class="message-avatar">
+      <div class="message-avatar" style="border-color: ${userColor};">
         <img src="${avatarUrl}" alt="${message.username}" title="${message.username}">
       </div>
       <div class="message-content">
         <div class="message-header">
-          <span class="message-username">${this.escapeHtml(message.username)}</span>
+          <span class="message-username" style="color: ${userColor};">${this.escapeHtml(message.username)}</span>
           ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
         </div>
         <p class="message-text">${this.escapeHtml(message.text)}</p>
@@ -327,8 +330,16 @@ class FirebaseChat {
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const hue = hash % 360;
-    return `hsl(${hue}, 70%, 50%)`;
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 68%, 52%)`;
+  }
+
+  getUserColor(username) {
+    if (!username) return 'var(--primary)';
+    if (this.userColors.has(username)) return this.userColors.get(username);
+    const color = this.stringToColor(username);
+    this.userColors.set(username, color);
+    return color;
   }
 
   scrollToBottom() {
@@ -494,6 +505,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!message) return;
 
     if (firebaseChatInstance) {
+      // clear the input immediately so the user sees it reset right away
+      if (elements.messageInput) {
+        elements.messageInput.value = '';
+        elements.messageInput.focus();
+      }
       firebaseChatInstance.sendMessage(message).then((success) => {
         if (success) {
           showToast('💬 Message sent!');
