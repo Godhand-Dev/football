@@ -1,236 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#0a0a14">
   <title>Livematch.com.ng - Live Football Streaming</title>
-  <link rel="stylesheet" href="/pages/link1.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="link1.css">
 </head>
 <body>
-  <!-- Animated Background Particles -->
-  <div class="particles" id="particles"></div>
+  <!-- Background Particles -->
+  <div id="particles" class="particles"></div>
 
   <!-- Header -->
   <header class="header">
     <div class="header-container">
       <div class="logo-container">
-        <a href="#" class="logo">
-          <span class="logo-icon"><i class="fas fa-futbol"></i></span>
-          <span class="logo-text">Livematch<span class="logo-highlight">.com.ng</span></span>
+        <a href="#" class="logo" aria-label="Livematch Home">
+          <i class="fas fa-futbol logo-icon"></i>
+          <span class="logo-text">Live<span class="logo-highlight">match</span>.com.ng</span>
         </a>
         <div class="logo-glow"></div>
       </div>
-      
       <nav class="nav">
-        <a href="#" class="nav-link active">
-          <i class="fas fa-home"></i>
-          <span>Home</span>
-        </a>
-        <a href="#" class="nav-link">
-          <i class="fas fa-tv"></i>
-          <span>Live Matches</span>
-        </a>
-        <a href="#" class="nav-link">
-          <i class="fas fa-calendar-alt"></i>
-          <span>Schedule</span>
-        </a>
-        <a href="#" class="nav-link">
-          <i class="fas fa-newspaper"></i>
-          <span>News</span>
-        </a>
+        <a href="#" class="nav-link active"><i class="fas fa-home"></i> Home</a>
+        <a href="#" class="nav-link"><i class="fas fa-broadcast-tower"></i> Live</a>
+        <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> Schedule</a>
+        <a href="#" class="nav-link"><i class="fas fa-newspaper"></i> News</a>
       </nav>
-
       <div class="header-actions">
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-          <i class="fas fa-moon"></i>
-        </button>
-        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
-          <i class="fas fa-bars"></i>
-        </button>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme"><i class="fas fa-moon"></i></button>
+        <button id="mobileMenuToggle" class="mobile-menu-toggle" aria-label="Open menu"><i class="fas fa-bars"></i></button>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
   <main class="main">
-    <!-- Stream Section -->
     <section class="stream-section">
       <div class="stream-container">
         <div class="stream-header">
-          <h1 class="stream-title">🔴 LIVE: Premier League Match</h1>
-          <div class="stream-status">
-            <span class="status-dot"></span>
-            <span>Live Now</span>
-          </div>
+          <h1 class="stream-title"><i class="fas fa-play-circle"></i> 🔴 LIVE: Premier League</h1>
+          <span class="stream-status"><span class="status-dot"></span> Live Now</span>
         </div>
-
-        <!-- Video Player -->
+        
         <div class="video-wrapper">
           <div class="player-container">
-            <iframe
-              src="https://eyj0exaioijkv1qilcjhbgcioijiuzi1nij99ds.zliymordanex.sbs/playerv5.php?match=4445127&key=c0ae1abba6eebd7e6cc5b88b1d2B71547"
-              width="100%"
-              height="600"
-              frameborder="0"
-              allowfullscreen
-              allow="autoplay; fullscreen">
-            </iframe>
-
+            <iframe src="https://example.com/stream" allowfullscreen loading="lazy"></iframe>
+            <div id="playerOverlay" class="player-overlay">
+              <div class="overlay-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Stream disconnected or buffering. Tap refresh to reconnect.</p>
+                <button id="refreshBtn" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh Stream</button>
+              </div>
+            </div>
           </div>
-
         </div>
-
-        <!-- Alternative Links CTA -->
+        
         <div class="links-prompt">
-          <p>⚽ Match not loading? <a href="#" id="altLinksBtn">Click here for alternative streaming links</a></p>
-          <button class="refresh-btn" id="refreshBtn">
-            <i class="fas fa-redo"></i> Refresh Stream
-          </button>
+          ⚽ Match not loading? <a id="altLinksBtn" href="#">View alternative streams</a>
+        </div>
+        
+        <div class="stream-controls">
+          <button class="control-btn"><i class="fas fa-expand"></i> <span>Fullscreen</span></button>
+          <button class="control-btn"><i class="fas fa-cog"></i> <span>Quality</span></button>
         </div>
       </div>
     </section>
 
-    <!-- Chat Section -->
-    <section class="chat-section">
-      <div class="chat-container">
-        <div class="chat-header">
-          <h2><i class="fas fa-comments"></i> Live Fan Chat</h2>
-          <p class="chat-read-prompt">Read chat and comments from fans around the world</p>
-        </div>
-
-        <!-- Chat Messages -->
-        <div id="chat-box" class="chat-box">
-          <ul id="messages" class="messages-list">
-            <!-- Messages will be dynamically inserted here -->
-          </ul>
-          <div class="chat-scroll-hint" id="chatScrollHint">
-            <i class="fas fa-arrow-down"></i>
-            <span>New messages</span>
+    <aside class="sidebar">
+      <!-- Chat Section -->
+      <div class="chat-section">
+        <div class="chat-container">
+          <div class="chat-header">
+            <h2><i class="fas fa-comments"></i> Live Fan Chat</h2>
+            <p class="chat-read-prompt">Join fans worldwide discussing the match</p>
           </div>
-        </div>
-
-        <!-- Chat Input -->
-        <div class="chat-input" id="chat-input">
-          <form id="message-form" class="message-form">
-            <input 
-              id="message-input" 
-              type="text" 
-              class="message-input" 
-              placeholder="Type your comment..." 
-              required 
-              autocomplete="off"
-            />
-            <button type="submit" class="send-btn">
-              <i class="fas fa-paper-plane"></i>
-              <span>Send</span>
-            </button>
+          
+          <div id="chat-box" class="chat-box">
+            <ul id="messages" class="messages-list"></ul>
+            <button id="chatScrollHint" class="chat-scroll-hint"><i class="fas fa-arrow-down"></i> New messages</button>
+          </div>
+          
+          <form id="message-form" class="chat-input">
+            <input type="text" id="message-input" class="message-input" placeholder="Type a message..." autocomplete="off">
+            <button type="submit" class="send-btn"><i class="fas fa-paper-plane"></i> Send</button>
           </form>
-        </div>
-
-        <!-- Auth Buttons -->
-        <!-- Load the Google Identity Services Library -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<div id="buttonDiv"></div> 
-
-<script>
-  function handleCredentialResponse(response) {
-    // This is the JWT 'credential' token containing user info
-    console.log("Encoded JWT ID token: " + response.credential);
-    
-    // Typically, you'd send this to your server to decode and verify
-    // or use a library to decode it locally for basic UI updates.
-  }
-
-  window.onload = function () {
-    google.accounts.id.initialize({
-      client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-      callback: handleCredentialResponse
-    });
-    
-    google.accounts.id.renderButton(
-      document.getElementById("buttonDiv"),
-      { theme: "outline", size: "large" }  // customization attributes
-    );
-    
-    // Optional: Displays the One Tap prompt
-    google.accounts.id.prompt(); 
-  }
-</script>
-
-</div>
-
-        <!-- Online Users -->
-        <div class="online-users">
-          <span class="user-count"><i class="fas fa-users"></i> <span id="userCount">1,247</span> fans online</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Match Info Sidebar (Desktop) -->
-    <aside class="match-info-sidebar">
-      <div class="match-card">
-        <div class="match-teams">
-          <div class="team">
-            
-            <span class="team-name">Man City</span>
-          </div>
-          <div class="vs">VS</div>
-          <div class="team">
-            
-            <span class="team-name">Liverpool</span>
-          </div>
-        </div>
-        <div class="match-meta">
-          <span class="match-time"><i class="fas fa-clock"></i> 15:00 GMT</span>
-          <span class="match-venue"><i class="fas fa-map-marker-alt"></i> Etihad Stadium</span>
-        </div>
-        <div class="match-stats">
-          <div class="stat">
-            <span class="stat-label">Possession</span>
-            <div class="stat-bar">
-              <div class="stat-fill" style="width: 58%"></div>
-              <span>58%</span>
+          
+          <div class="auth-buttons">
+            <button id="google-signin" class="google-signin-btn"><i class="fab fa-google"></i> Continue with Google</button>
+            <div id="user-profile" class="user-profile" style="display: none;">
+              <img id="user-avatar" class="user-avatar" src="" alt="User avatar">
+              <span id="user-name" class="user-name"></span>
+              <button id="logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
           </div>
-          <div class="stat">
-            <span class="stat-label">Shots</span>
-            <div class="stat-values">
-              <span>7</span>
-              <span>-</span>
-              <span>4</span>
-            </div>
+          
+          <div class="online-users">
+            <span id="userCount" class="user-count"><i class="fas fa-users"></i> <span>1,247</span> fans online</span>
           </div>
         </div>
       </div>
 
-      <!-- Upcoming Matches -->
-      <div class="upcoming-matches">
-        <h3><i class="fas fa-list"></i> Upcoming</h3>
-        <ul class="matches-list">
-          <li class="match-item">
-            <span class="match-time-sm">17:30</span>
-            <div class="match-teams-sm">
-              <span>Arsenal</span>
-              <span class="vs-sm">vs</span>
-              <span>Chelsea</span>
+      <!-- Match Info -->
+      <div class="match-info-sidebar">
+        <div class="match-card">
+          <div class="match-teams">
+            <div class="team">
+              <img src="https://via.placeholder.com/60/1a1a2e/ffffff?text=MCI" alt="Man City" class="team-logo">
+              <span class="team-name">Man City</span>
             </div>
-          </li>
-          <li class="match-item">
-            <span class="match-time-sm">20:00</span>
-            <div class="match-teams-sm">
-              <span>Real Madrid</span>
-              <span class="vs-sm">vs</span>
-              <span>Barcelona</span>
+            <div class="vs">VS</div>
+            <div class="team">
+              <img src="https://via.placeholder.com/60/1a1a2e/ffffff?text=LIV" alt="Liverpool" class="team-logo">
+              <span class="team-name">Liverpool</span>
             </div>
-          </li>
-        </ul>
+          </div>
+          <div class="match-meta">
+            <span><i class="fas fa-clock"></i> 15:00 GMT</span>
+            <span><i class="fas fa-map-marker-alt"></i> Etihad Stadium</span>
+          </div>
+          <div class="match-stats">
+            <div class="stat">
+              <span class="stat-label">Possession</span>
+              <div class="stat-bar"><div class="stat-fill" style="width: 58%"></div><span>58%</span></div>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Shots on Target</span>
+              <div class="stat-values"><span>7</span><span>-</span><span>4</span></div>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   </main>
@@ -239,40 +145,36 @@
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-brand">
-        <span class="footer-logo">Livematch<span class="highlight">.com.ng</span></span>
+        <span class="footer-logo">Live<span class="highlight">match</span>.com.ng</span>
         <p>Your premium destination for live football streaming</p>
       </div>
-      <div class="footer-links">
+      <nav class="footer-links">
         <a href="#">Terms of Service</a>
         <a href="#">Privacy Policy</a>
         <a href="#">Contact Us</a>
         <a href="#">DMCA</a>
-      </div>
-      <div class="footer-copyright">
-        <p>&copy; 2026 Livematch.com.ng. All rights reserved.</p>
-      </div>
+      </nav>
+      <p class="footer-copyright">© 2026 Livematch.com.ng. All rights reserved.</p>
     </div>
   </footer>
 
-  <!-- Toast Notification -->
-  <div class="toast" id="toast">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage">Message sent!</span>
-  </div>
-
-  <!-- Mobile Menu Overlay -->
-  <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+  <!-- Mobile Menu -->
+  <div id="mobileMenuOverlay" class="mobile-menu-overlay">
     <nav class="mobile-nav">
       <a href="#" class="mobile-nav-link active"><i class="fas fa-home"></i> Home</a>
-      <a href="#" class="mobile-nav-link"><i class="fas fa-tv"></i> Live Matches</a>
+      <a href="#" class="mobile-nav-link"><i class="fas fa-broadcast-tower"></i> Live Matches</a>
       <a href="#" class="mobile-nav-link"><i class="fas fa-calendar-alt"></i> Schedule</a>
       <a href="#" class="mobile-nav-link"><i class="fas fa-newspaper"></i> News</a>
     </nav>
   </div>
 
-  <script src="/pages/link1.js"></script>
-  <script src="/pages/firebase-config.js"></script>
-  <script src="/pages/firebase-chat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4"></script>
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"><span id="toastMessage"></span></div>
+
+  <!-- Firebase & Main Script -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="link1.js"></script>
 </body>
 </html>
