@@ -24,9 +24,6 @@ try {
 window.firebaseAuth = firebase.auth();
 window.firebaseDb = firebase.firestore();
 
-// ==========================================
-// FIREBASE CHAT CLASS
-// ==========================================
 class FirebaseChat {
   constructor(messagesList, chatBox, messageInput, messageForm) {
     this.messagesList = messagesList;
@@ -35,7 +32,7 @@ class FirebaseChat {
     this.messageForm = messageForm;
     this.currentUser = null;
     this.messagesRef = firebase.firestore().collection('matches').doc('live-match').collection('messages');
-    this.unsubscribe = null;
+    this.unsubscribe = () => {}; // Initialize with a no-op function
     this.loadedMessageIds = new Set();
     this.messageElements = new Map();
     this.userColors = new Map();
@@ -47,7 +44,7 @@ class FirebaseChat {
       if (user) {
         console.log('👤 User logged in:', user.displayName);
         this.listenToMessages();
-        this.setUserPresence(true);
+        this.setUserPresence(true); // Keep presence for this page's chat
       } else {
         console.log('🚪 User logged out');
         if (this.unsubscribe) this.unsubscribe();
@@ -63,7 +60,7 @@ class FirebaseChat {
   }
 
   listenToMessages() {
-    if (this.unsubscribe) this.unsubscribe();
+    this.unsubscribe(); // Call the unsubscribe function if it exists
     
     this.unsubscribe = this.messagesRef
       .orderBy('timestamp', 'desc')
@@ -297,7 +294,7 @@ class FirebaseChat {
     if (!this.currentUser) return;
     try {
       const presenceRef = firebase.firestore().collection('presence').doc(this.currentUser.uid);
-      if (isOnline) {
+      if (isOnline) { // Only set online status if user is logged in
         await presenceRef.set({
           userId: this.currentUser.uid,
           username: this.currentUser.displayName,
@@ -306,7 +303,7 @@ class FirebaseChat {
           online: true
         }, { merge: true });
       } else {
-        await presenceRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+        await presenceRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() }); // Update last seen on logout
       }
     } catch (error) {
       console.error('❌ Error updating presence:', error);
@@ -315,7 +312,7 @@ class FirebaseChat {
 
   getOnlineUserCount(callback) {
     firebase.firestore().collection('presence')
-      .where('online', '==', true)
+      .where('online', '==', true) // Filter for online users
       .onSnapshot((snapshot) => callback(snapshot.size));
   }
 
@@ -344,7 +341,7 @@ class FirebaseChat {
 
   scrollToBottom() {
     if (this.chatBox) {
-      setTimeout(() => {
+      setTimeout(() => { // Small delay to ensure DOM updates
         this.chatBox.scrollTop = this.chatBox.scrollHeight;
       }, 10);
     }
@@ -357,11 +354,6 @@ class FirebaseChat {
   }
 }
 
-window.FirebaseChat = FirebaseChat;
-
-// ==========================================
-// MAIN APPLICATION LOGIC
-// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   const elements = {
     playerOverlay: document.getElementById('playerOverlay'),
@@ -384,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toastMessage: document.getElementById('toastMessage'),
     userCount: document.getElementById('userCount'),
     particlesContainer: document.getElementById('particles')
-  };
+  }; // Ensure all elements are correctly identified
 
   const state = {
     isDarkMode: true,
@@ -392,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isChatAtBottom: true,
     currentUser: null
   };
-
+  
   let firebaseChatInstance = null;
 
   init();
@@ -401,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     createParticles();
     setupEventListeners();
     applySavedTheme();
-    setupAuthListener();
+    setupAuthListener(); // Setup auth listener before chat initialization
 
     try {
       firebaseChatInstance = new FirebaseChat(
@@ -411,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.messageForm
       );
       window.firebaseChat = firebaseChatInstance;
-      firebaseChatInstance.init();
+      firebaseChatInstance.init(); // Initialize chat after Firebase is ready
     } catch (error) {
       console.error('❌ Failed to initialize Firebase Chat:', error);
     }
@@ -419,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (firebaseChatInstance) {
       firebaseChatInstance.getOnlineUserCount((count) => {
         if (elements.userCount) {
-          const countSpan = elements.userCount.querySelector('span');
+          const countSpan = elements.userCount.querySelector('span'); // Update online user count
           if (countSpan) countSpan.textContent = count.toLocaleString();
         }
       });
@@ -430,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.auth().onAuthStateChanged((user) => {
       state.currentUser = user;
       state.isUserLoggedIn = !!user;
-      updateAuthUI(user);
+      updateAuthUI(user); // Update UI based on auth state
       if (user) showToast(`👋 Welcome, ${user.displayName || 'User'}!`);
     });
   }
@@ -440,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const particleCount = window.innerWidth > 768 ? 30 : 15;
     elements.particlesContainer.innerHTML = '';
     
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < particleCount; i++) { // Generate particles
       const particle = document.createElement('div');
       particle.className = 'particle';
       const size = Math.random() * 4 + 2;
@@ -459,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.refreshBtn?.addEventListener('click', refreshStream);
     elements.bottomRefreshBtn?.addEventListener('click', refreshStream);
     
-    elements.messageForm?.addEventListener('submit', handleSendMessage);
+    elements.messageForm?.addEventListener('submit', handleSendMessage); // Chat message submission
     elements.chatBox?.addEventListener('scroll', handleChatScroll);
     elements.chatScrollHint?.addEventListener('click', scrollToBottom);
     elements.googleSigninBtn?.addEventListener('click', handleGoogleSignin);
@@ -472,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('resize', debounce(() => createParticles(), 250));
-
+    
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && elements.mobileMenuOverlay?.classList.contains('active')) toggleMobileMenu();
       if (e.key === 'Enter' && e.ctrlKey && elements.messageInput?.value.trim()) {
@@ -484,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function refreshStream() {
     showToast('🔄 Refreshing stream...');
     const iframe = document.querySelector('.player-container iframe');
-    if (iframe) {
+    if (iframe) { // Refresh iframe by resetting its src
       const src = iframe.src;
       iframe.src = 'about:blank';
       setTimeout(() => {
@@ -496,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleSendMessage(e) {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission
     if (!state.isUserLoggedIn) {
       showToast('⚠️ Please sign in to send messages');
       return;
@@ -506,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (firebaseChatInstance) {
       // clear the input immediately so the user sees it reset right away
-      if (elements.messageInput) {
+      if (elements.messageInput) { // Clear input field
         elements.messageInput.value = '';
         elements.messageInput.focus();
       }
@@ -522,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleChatScroll() {
-    if (!elements.chatBox) return;
+    if (!elements.chatBox) return; // Check if chatBox exists
     const { scrollTop, scrollHeight, clientHeight } = elements.chatBox;
     state.isChatAtBottom = scrollHeight - scrollTop - clientHeight < 50;
     if (state.isChatAtBottom) elements.chatScrollHint?.classList.remove('visible');
@@ -530,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function scrollToBottom() {
     if (elements.chatBox) {
-      elements.chatBox.scrollTo({ top: elements.chatBox.scrollHeight, behavior: 'smooth' });
+      elements.chatBox.scrollTo({ top: elements.chatBox.scrollHeight, behavior: 'smooth' }); // Smooth scroll to bottom
       state.isChatAtBottom = true;
       elements.chatScrollHint?.classList.remove('visible');
     }
@@ -538,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleGoogleSignin(e) {
     if (e) e.preventDefault();
-    console.log('🔐 Google Sign-In triggered');
+    console.log('🔐 Google Sign-In triggered'); // Log sign-in attempt
 
     if (!firebase || !firebase.auth) {
       showToast('❌ Firebase not loaded. Please refresh the page.');
@@ -547,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.addScope('profile');
-    provider.addScope('email');
+    provider.addScope('email'); // Request profile and email scopes
 
     firebase.auth().signInWithPopup(provider)
       .then((result) => {
@@ -565,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleLogout(e) {
-    if (e) e.preventDefault();
+    if (e) e.preventDefault(); // Prevent default link behavior
     firebase.auth().signOut()
       .then(() => showToast('👋 Logged out successfully'))
       .catch(() => showToast('❌ Logout failed'));
@@ -575,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user) {
       elements.googleSigninBtn.style.display = 'none';
       if (elements.userProfile) {
-        elements.userProfile.style.display = 'flex';
+        elements.userProfile.style.display = 'flex'; // Show user profile
         
         // FIXED: Profile Picture
         if (elements.userAvatar) {
@@ -588,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } else {
-      elements.googleSigninBtn.style.display = 'flex';
+      elements.googleSigninBtn.style.display = 'flex'; // Show sign-in button
       if (elements.userProfile) elements.userProfile.style.display = 'none';
     }
   }
@@ -596,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function toggleTheme() { /* ... unchanged ... */ 
     state.isDarkMode = !state.isDarkMode;
     document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
-    if (elements.themeToggle) {
+    if (elements.themeToggle) { // Update theme toggle icon
       const icon = elements.themeToggle.querySelector('i');
       if (icon) icon.className = state.isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
     }
@@ -607,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function applySavedTheme() { /* ... unchanged ... */ 
     const savedTheme = localStorage.getItem('livematch-theme');
     if (savedTheme) {
-      state.isDarkMode = savedTheme === 'dark';
+      state.isDarkMode = savedTheme === 'dark'; // Set dark mode based on saved preference
       document.documentElement.setAttribute('data-theme', savedTheme);
       if (elements.themeToggle) {
         const icon = elements.themeToggle.querySelector('i');
@@ -617,12 +609,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function toggleMobileMenu() {
-    elements.mobileMenuOverlay?.classList.toggle('active');
+    elements.mobileMenuOverlay?.classList.toggle('active'); // Toggle mobile menu visibility
     document.body.style.overflow = elements.mobileMenuOverlay?.classList.contains('active') ? 'hidden' : '';
   }
 
   function showToast(message, duration = 3000) {
-    if (!elements.toast || !elements.toastMessage) return;
+    if (!elements.toast || !elements.toastMessage) return; // Check if toast elements exist
     elements.toastMessage.textContent = message;
     elements.toast.classList.add('show');
     setTimeout(() => elements.toast.classList.remove('show'), duration);
@@ -630,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function debounce(func, wait) {
     let timeout;
-    return function executedFunction(...args) {
+    return function executedFunction(...args) { // Debounce function to limit calls
       clearTimeout(timeout);
       timeout = setTimeout(() => func(...args), wait);
     };
