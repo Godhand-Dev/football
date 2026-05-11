@@ -141,9 +141,23 @@ body {
 }
 .refresh-btn:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 20px var(--primary-glow); }
 
-.links-prompt { background: var(--dark-card-hover); padding: 0.8rem; border-radius: var(--radius-sm); text-align: center; border-left: 3px solid var(--warning); margin-bottom: 0.8rem; }
-.links-prompt a { color: var(--primary); text-decoration: none; font-weight: 500; transition: var(--transition); }
-.links-prompt a:hover { text-decoration: underline; }
+.links-prompt { 
+  width: 100%;
+  background: var(--dark-card-hover); 
+  padding: 0.8rem; 
+  border-radius: var(--radius-sm); 
+  text-align: center; 
+  border: none;
+  border-left: 3px solid var(--warning); 
+  margin-bottom: 0.8rem; 
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.links-prompt:hover { background: var(--border-color); transform: translateY(-1px); }
+.links-prompt strong { color: var(--primary); margin-left: 4px; }
 
 .stream-controls { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
 .control-btn {
@@ -259,7 +273,15 @@ body {
   display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem; background: var(--dark-card-hover);
   border-radius: var(--radius-sm); border: 1px solid var(--border-color);
 }
-.user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  background: #333;
+  flex-shrink: 0;
+}
 .user-name { flex: 1; font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .online-users { padding: 0 1.2rem 1rem; text-align: center; }
@@ -376,13 +398,3 @@ body {
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .hidden { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--primary);
-  background: #333;
-  flex-shrink: 0;
-}
