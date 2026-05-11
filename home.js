@@ -1,168 +1,516 @@
-// script.js
+/**
+ * Livematch.com.ng - Complete JavaScript Bundle
+ * Fixed: Firebase initialization + Google Sign-In (popup method)
+ */
+
+// ==========================================
+// 1. FIREBASE CONFIGURATION & INITIALIZATION
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCGVQc5OP4k9AXlkK6Ld98yvBmODuc0d60",
+  authDomain: "chatapp-5afff.firebaseapp.com",
+  databaseURL: "https://chatapp-5afff-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "chatapp-5afff",
+  storageBucket: "chatapp-5afff.firebasestorage.app",
+  messagingSenderId: "835710769608",
+  appId: "1:835710769608:web:ae974aeab8745fdea848fd",
+  measurementId: "G-V6BH65CXV5"
+};
+
+// Initialize Firebase (only once)
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+  console.log('✅ Firebase initialized successfully');
+}
+
+// Expose services globally for compatibility
+window.firebaseAuth = firebase.auth();
+window.firebaseDb = firebase.firestore();
+
+// ==========================================
+// 2. FIREBASE CHAT CLASS
+// ==========================================
+class FirebaseChat {
+  constructor(messagesList, chatBox, messageInput, messageForm) {
+    this.messagesList = messagesList;
+    this.chatBox = chatBox;
+    this.messageInput = messageInput;
+    this.messageForm = messageForm;
+    this.currentUser = null;
+    this.messagesRef = firebase.firestore().collection('matches').doc('live-match').collection('messages');
+    this.unsubscribe = null;
+    this.loadedMessageIds = new Set();
+  }
+
+  init() {
+    firebase.auth().onAuthStateChanged((user) => {
+      this.currentUser = user;
+      if (user) {
+        console.log('👤 User logged in:', user.displayName);
+        this.listenToMessages();
+        this.setUserPresence(true);
+      } else {
+        console.log('🚪 User logged out');
+        if (this.unsubscribe) this.unsubscribe();
+        this.setUserPresence(false);
+      }
+    });
+  }
+
+  listenToMessages() {
+    if (this.unsubscribe) this.unsubscribe();
+    
+    this.unsubscribe = this.messagesRef
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .onSnapshot(
+        (snapshot) => {
+          const messages = [];
+          snapshot.forEach((doc) => messages.unshift(doc.data()));
+          
+          if (this.messagesList) {
+            messages.forEach((msg) => {
+              if (!this.loadedMessageIds.has(msg.id)) {
+                this.addMessageToUI(msg);
+                this.loadedMessageIds.add(msg.id);
+              }
+            });
+          }
+          this.scrollToBottom();
+        },
+        (error) => console.error('🔥 Error listening to messages:', error)
+      );
+  }
+
+  async sendMessage(text) {
+    if (!this.currentUser || !text.trim()) {
+      console.warn('⚠️ User not logged in or message is empty');
+      return false;
+    }
+    try {
+      const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      await this.messagesRef.add({
+        id: messageId,
+        userId: this.currentUser.uid,
+        username: this.currentUser.displayName || 'Anonymous',
+        userEmail: this.currentUser.email,
+        userAvatar: this.currentUser.photoURL || null,
+        text: text.trim(),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        likes: 0,
+        edited: false
+      });
+
+      if (this.messageInput) this.messageInput.value = '';
+      console.log('✅ Message sent successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Error sending message:', error);
+      return false;
+    }
+  }
+
+  addMessageToUI(message) {
+    if (!this.messagesList) return;
+    
+    const messageEl = document.createElement('li');
+    messageEl.className = 'message-item';
+    messageEl.dataset.messageId = message.id;
+
+    const isCurrentUser = this.currentUser && this.currentUser.uid === message.userId;
+    const avatarUrl = message.userAvatar || this.getDefaultAvatar(message.username);
+    const timestamp = message.timestamp 
+      ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      : 'now';
+
+    messageEl.innerHTML = `
+      <div class="message-avatar">
+        <img src="${avatarUrl}" alt="${message.username}" title="${message.username}">
+      </div>
+      <div class="message-content">
+        <div class="message-header">
+          <span class="message-username">${this.escapeHtml(message.username)}</span>
+          ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
+          <span class="message-time">${timestamp}</span>
+          ${message.edited ? '<span class="message-edited">(edited)</span>' : ''}
+        </div>
+        <p class="message-text">${this.escapeHtml(message.text)}</p>
+      </div>
+      ${isCurrentUser ? `
+        <div class="message-actions">
+          <button class="msg-delete" onclick="window.firebaseChat.deleteMessage('${message.id}')" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      ` : ''}
+    `;
+    
+    this.messagesList.appendChild(messageEl);
+
+    // Limit rendered messages to 100
+    if (this.messagesList.children.length > 100) {
+      const oldMsg = this.messagesList.children[0];
+      if (oldMsg.dataset.messageId) this.loadedMessageIds.delete(oldMsg.dataset.messageId);
+      oldMsg.remove();
+    }
+  }
+
+  async deleteMessage(messageId) {
+    if (!confirm('Delete this message?')) return;
+    try {
+      const snapshot = await this.messagesRef.where('id', '==', messageId).get();
+      snapshot.forEach((doc) => doc.ref.delete());
+      console.log('🗑️ Message deleted');
+    } catch (error) {
+      console.error('❌ Error deleting message:', error);
+    }
+  }
+
+  async setUserPresence(isOnline) {
+    if (!this.currentUser) return;
+    try {
+      const presenceRef = firebase.firestore().collection('presence').doc(this.currentUser.uid);
+      
+      if (isOnline) {
+        await presenceRef.set({
+          userId: this.currentUser.uid,
+          username: this.currentUser.displayName,
+          userAvatar: this.currentUser.photoURL,
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+          online: true
+        }, { merge: true });
+      } else {
+        await presenceRef.update({
+          online: false,
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error updating presence:', error);
+    }
+  }
+
+  getOnlineUserCount(callback) {
+    firebase.firestore().collection('presence')
+      .where('online', '==', true)
+      .onSnapshot((snapshot) => callback(snapshot.size));
+  }
+
+  getDefaultAvatar(username) {
+    const initials = username.substring(0, 2).toUpperCase();
+    const bgColor = this.stringToColor(username);
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${bgColor.substring(1)}&color=fff&size=40`;
+  }
+
+  stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = hash % 360;
+    return `hsl(${hue}, 70%, 50%)`;
+  }
+
+  scrollToBottom() {
+    if (this.chatBox) {
+      setTimeout(() => {
+        this.chatBox.scrollTop = this.chatBox.scrollHeight;
+      }, 0);
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
+
+window.FirebaseChat = FirebaseChat;
+
+// ==========================================
+// 3. MAIN APPLICATION LOGIC
+// ==========================================
+let firebaseChat = null;
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Sample live matches
-    const matches = [
-        { id: 1, league: "Premier League", teams: "Arsenal vs Chelsea", icon: "⚽", time: "LIVE" },
-        { id: 2, league: "La Liga", teams: "Real Madrid vs Barcelona", icon: "🏟️", time: "LIVE" },
-        { id: 3, league: "Serie A", teams: "Juventus vs Inter", icon: "🇮🇹", time: "LIVE" },
-        { id: 4, league: "Bundesliga", teams: "Bayern vs Dortmund", icon: "🇩🇪", time: "LIVE" },
-        { id: 5, league: "Champions League", teams: "Man City vs PSG", icon: "🌍", time: "LIVE" },
-        { id: 6, league: "EPL", teams: "Liverpool vs Tottenham", icon: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", time: "45'" },
-        { id: 7, league: "Ligue 1", teams: "PSG vs Marseille", icon: "🇫🇷", time: "LIVE" },
-        { id: 8, league: "Africa Cup", teams: "Nigeria vs Ghana", icon: "🇳🇬", time: "LIVE" },
-        { id: 9, league: "MLS", teams: "LAFC vs Inter Miami", icon: "🇺🇸", time: "22'" },
-        { id: 10, league: "Saudi Pro", teams: "Al Hilal vs Al Nassr", icon: "🇸🇦", time: "LIVE" }
-    ];
+  // DOM elements
+  const elements = {
+    playerOverlay: document.getElementById('playerOverlay'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    altLinksBtn: document.getElementById('altLinksBtn'),
+    chatBox: document.getElementById('chat-box'),
+    messagesList: document.getElementById('messages'),
+    messageForm: document.getElementById('message-form'),
+    messageInput: document.getElementById('message-input'),
+    chatScrollHint: document.getElementById('chatScrollHint'),
+    googleSigninBtn: document.getElementById('google-signin'),
+    logoutBtn: document.getElementById('logout'),
+    userProfile: document.getElementById('user-profile'),
+    userAvatar: document.getElementById('user-avatar'),
+    userName: document.getElementById('user-name'),
+    themeToggle: document.getElementById('themeToggle'),
+    mobileMenuToggle: document.getElementById('mobileMenuToggle'),
+    mobileMenuOverlay: document.getElementById('mobileMenuOverlay'),
+    toast: document.getElementById('toast'),
+    toastMessage: document.getElementById('toastMessage'),
+    userCount: document.getElementById('userCount'),
+    particlesContainer: document.getElementById('particles')
+  };
 
-    const grid = document.getElementById('streams-grid');
-    
-    matches.forEach(match => {
-        const card = document.createElement('div');
-        card.className = 'stream-card glass';
-        card.style.cursor = 'pointer';
-        card.innerHTML = `
-            <div class="stream-icon">
-                <span style="font-size: 5rem;">${match.icon}</span>
-                <span style="position:absolute; top:16px; left:16px; background:#ff3333; color:white; padding:3px 12px; border-radius:20px; font-size:0.75rem; font-weight:700;">${match.time}</span>
-            </div>
-            <div class="stream-info">
-                <h4>${match.teams}</h4>
-                <p>${match.league}</p>
-            </div>
-        `;
-        card.addEventListener('click', () => {
-            window.location.href = `match.html?id=${match.id}`;
-        });
-        grid.appendChild(card);
-    });
+  const state = {
+    isDarkMode: true,
+    isUserLoggedIn: false,
+    isChatAtBottom: true,
+    currentUser: null
+  };
 
-    // Modal functionality
-    const modal = document.getElementById('stream-modal');
-    const closeModal = document.getElementById('close-modal');
-    const modalVideo = document.querySelector('.modal-video');
-    
-    function openStreamModal(match) {
-        document.getElementById('modal-match-title').textContent = `${match.teams} - ${match.league}`;
-        
-        // Insert iframe for first match (Arsenal vs Chelsea)
-        if (match.id === 1) {
-            modalVideo.innerHTML = `
-                <iframe
-                  src="https://eyj0exaioijkv1qilcjhbgcioijiuzi1nij99ds.zliymordanex.sbs/playerv5.php?match=4445127&key=c0ae1abba6eebd7e6cc5b88b1d2B71547"
-                  width="100%"
-                  height="550"
-                  frameborder="0"
-                  allowfullscreen
-                  allow="autoplay; fullscreen">
-                </iframe>
-            `;
-        } else {
-            // Show fake player for other matches
-            modalVideo.innerHTML = `
-                <div class="fake-player">
-                    <i class="fas fa-play-circle fa-5x"></i>
-                    <p>High Quality Stream (1080p60)</p>
-                    <div class="fake-progress"></div>
-                </div>
-            `;
-        }
-        
-        modal.style.display = 'flex';
+  // Initialize everything
+  init();
+
+  function init() {
+    createParticles();
+    setupEventListeners();
+    applySavedTheme();
+    setupAuthListener();
+
+    // Initialize Firebase Chat
+    try {
+      firebaseChat = new FirebaseChat(
+        elements.messagesList,
+        elements.chatBox,
+        elements.messageInput,
+        elements.messageForm
+      );
+      window.firebaseChat = firebaseChat;
+      firebaseChat.init();
+    } catch (error) {
+      console.error('❌ Failed to initialize Firebase Chat:', error);
     }
-    
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
 
-    // Refresh button
-    document.getElementById('refresh-btn').addEventListener('click', () => {
-        const btn = document.getElementById('refresh-btn');
-        const originalText = btn.textContent;
-        btn.textContent = 'Re-syncing...';
-        btn.disabled = true;
-        
-        setTimeout(() => {
-            btn.textContent = '✅ Re-synced!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }, 2000);
-        }, 1200);
-    });
-
-    // Bookmark buttons
-    const bookmarkBtns = document.querySelectorAll('#bookmark-btn, #bookmark-large');
-    bookmarkBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if ('requestStorageAccess' in document) {
-                alert("✅ Site bookmarked! You'll never miss a match.");
-            } else {
-                alert("Press Ctrl+D (Windows) or Cmd+D (Mac) to bookmark livematch.com.ng");
-            }
-        });
-    });
-
-    // Fake chat
-    const chatMessages = document.getElementById('chat-messages');
-    const sampleMessages = [
-        { text: "What a goal by Salah!!! 🔥", user: "LiverpoolFanNG" },
-        { text: "VAR robbed us again 😤", user: "Gooner4Life" },
-        { text: "Who else is watching from Lagos?", user: "NaijaBall" }
-    ];
-    
-    sampleMessages.forEach(msg => {
-        const div = document.createElement('div');
-        div.className = 'chat-msg';
-        div.innerHTML = `<strong>${msg.user}:</strong> ${msg.text}`;
-        chatMessages.appendChild(div);
-    });
-    
-    // Send chat
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-chat');
-    
-    function sendMessage() {
-        if (!chatInput.value.trim()) return;
-        
-        const div = document.createElement('div');
-        div.className = 'chat-msg self';
-        div.textContent = chatInput.value;
-        chatMessages.appendChild(div);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        chatInput.value = '';
-    }
-    
-    sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
-
-    // Notify button
-    document.getElementById('notify-btn').addEventListener('click', () => {
-        const email = document.getElementById('email-input').value;
-        if (email) {
-            alert(`✅ Notification list joined! We'll ping you before every big match, ${email.split('@')[0]}!`);
-            document.getElementById('email-input').value = '';
-        } else {
-            alert("Please enter your email");
+    // Online user counter
+    if (firebaseChat) {
+      firebaseChat.getOnlineUserCount((count) => {
+        if (elements.userCount) {
+          elements.userCount.textContent = count.toLocaleString();
         }
-    });
+      });
+    }
+  }
 
-    // Watch now button
-    document.getElementById('watch-now').addEventListener('click', () => {
-        document.getElementById('streams').scrollIntoView({ behavior: 'smooth' });
+  // Auth State Listener
+  function setupAuthListener() {
+    firebase.auth().onAuthStateChanged((user) => {
+      state.currentUser = user;
+      state.isUserLoggedIn = !!user;
+      updateAuthUI(user);
+      if (user) showToast(`👋 Welcome, ${user.displayName || 'User'}!`);
     });
+  }
 
-    // Keyboard shortcut hint
-    console.log('%c👟 livematch.com.ng ready. Press "R" to simulate refresh.', 'color:#f1c40f; font-family:monospace');
+  // Particle Animation
+  function createParticles() {
+    if (!elements.particlesContainer) return;
+    elements.particlesContainer.innerHTML = '';
+    const particleCount = window.innerWidth > 768 ? 30 : 15;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      const size = Math.random() * 4 + 2;
+      particle.style.cssText = `
+        width: ${size}px; height: ${size}px;
+        left: ${Math.random() * 100}%;
+        animation-delay: ${Math.random() * 15}s;
+        animation-duration: ${Math.random() * 10 + 10}s;
+        opacity: ${Math.random() * 0.4 + 0.1};
+      `;
+      elements.particlesContainer.appendChild(particle);
+    }
+  }
+
+  // Event Listeners
+  function setupEventListeners() {
+    elements.refreshBtn?.addEventListener('click', refreshStream);
+    elements.altLinksBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('🔗 Alternative links opened in new tab');
+    });
     
+    elements.messageForm?.addEventListener('submit', handleSendMessage);
+    elements.chatBox?.addEventListener('scroll', handleChatScroll);
+    elements.chatScrollHint?.addEventListener('click', scrollToBottom);
+    
+    elements.googleSigninBtn?.addEventListener('click', handleGoogleSignin);
+    elements.logoutBtn?.addEventListener('click', handleLogout);
+    elements.themeToggle?.addEventListener('click', toggleTheme);
+    
+    elements.mobileMenuToggle?.addEventListener('click', toggleMobileMenu);
+    elements.mobileMenuOverlay?.addEventListener('click', (e) => {
+      if (e.target === elements.mobileMenuOverlay) toggleMobileMenu();
+    });
+
+    window.addEventListener('resize', debounce(() => {
+      if (elements.particlesContainer) {
+        elements.particlesContainer.innerHTML = '';
+        createParticles();
+      }
+    }, 250));
+
     document.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'r') {
-            document.getElementById('refresh-btn').click();
-        }
+      if (e.key === 'Escape' && elements.mobileMenuOverlay?.classList.contains('active')) {
+        toggleMobileMenu();
+      }
+      if (e.key === 'Enter' && e.ctrlKey && elements.messageInput?.value.trim()) {
+        elements.messageForm?.requestSubmit();
+      }
     });
+  }
+
+  // Stream Functions
+  function refreshStream() {
+    showToast('🔄 Refreshing stream...');
+    const iframe = document.querySelector('.player-container iframe');
+    if (iframe) {
+      const src = iframe.src;
+      iframe.src = 'about:blank';
+      setTimeout(() => {
+        iframe.src = src;
+        elements.playerOverlay?.classList.remove('active');
+        showToast('✅ Stream refreshed successfully!');
+      }, 1500);
+    }
+  }
+
+  // Chat Functions
+  function handleSendMessage(e) {
+    e.preventDefault();
+    if (!state.isUserLoggedIn) {
+      showToast('⚠️ Please sign in to send messages');
+      return;
+    }
+    const message = elements.messageInput?.value.trim();
+    if (!message) return;
+
+    if (firebaseChat) {
+      firebaseChat.sendMessage(message).then((success) => {
+        if (success) {
+          showToast('💬 Message sent!');
+          scrollToBottom();
+        } else {
+          showToast('❌ Failed to send message');
+        }
+      });
+    }
+  }
+
+  function handleChatScroll() {
+    if (!elements.chatBox) return;
+    const { scrollTop, scrollHeight, clientHeight } = elements.chatBox;
+    state.isChatAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    if (state.isChatAtBottom) elements.chatScrollHint?.classList.remove('visible');
+  }
+
+  function scrollToBottom() {
+    if (elements.chatBox) {
+      elements.chatBox.scrollTo({ top: elements.chatBox.scrollHeight, behavior: 'smooth' });
+      state.isChatAtBottom = true;
+      elements.chatScrollHint?.classList.remove('visible');
+    }
+  }
+
+  // AUTHENTICATION - Fixed Google Sign-In (popup method)
+  function handleGoogleSignin(e) {
+    e.preventDefault();
+    console.log('🔐 Initiating Google Sign-In...');
+    
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('profile');
+    provider.addScope('email');
+    
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        console.log('✅ Sign-in successful:', result.user.displayName);
+        showToast(`✅ Signed in as ${result.user.displayName}`);
+      })
+      .catch((error) => {
+        console.error('❌ Sign-in error:', error.code, error.message);
+        let msg = 'Sign-in failed. ';
+        if (error.code === 'auth/popup-blocked') msg += 'Please allow popups for this site.';
+        else if (error.code === 'auth/unauthorized-domain') msg += 'Domain not authorized in Firebase Console.';
+        else msg += error.message;
+        showToast(msg);
+      });
+  }
+
+  function handleLogout(e) {
+    e.preventDefault();
+    firebase.auth().signOut()
+      .then(() => showToast('👋 You have been logged out'))
+      .catch((error) => {
+        console.error('Logout error:', error);
+        showToast('❌ Logout failed');
+      });
+  }
+
+  function updateAuthUI(user) {
+    if (user) {
+      elements.googleSigninBtn.style.display = 'none';
+      if (elements.userProfile) {
+        elements.userProfile.style.display = 'flex';
+        if (elements.userAvatar && user.photoURL) elements.userAvatar.src = user.photoURL;
+        if (elements.userName) elements.userName.textContent = user.displayName || user.email;
+      }
+    } else {
+      elements.googleSigninBtn.style.display = 'flex';
+      if (elements.userProfile) elements.userProfile.style.display = 'none';
+    }
+  }
+
+  // Theme Functions
+  function toggleTheme() {
+    state.isDarkMode = !state.isDarkMode;
+    document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
+    if (elements.themeToggle) {
+      const icon = elements.themeToggle.querySelector('i');
+      if (icon) icon.className = state.isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
+    }
+    localStorage.setItem('livematch-theme', state.isDarkMode ? 'dark' : 'light');
+    showToast(state.isDarkMode ? '🌙 Dark mode enabled' : '☀️ Light mode enabled');
+  }
+
+  function applySavedTheme() {
+    const savedTheme = localStorage.getItem('livematch-theme');
+    if (savedTheme) {
+      state.isDarkMode = savedTheme === 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      if (elements.themeToggle) {
+        const icon = elements.themeToggle.querySelector('i');
+        if (icon) icon.className = state.isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
+      }
+    }
+  }
+
+  // Mobile Menu
+  function toggleMobileMenu() {
+    elements.mobileMenuOverlay?.classList.toggle('active');
+    document.body.style.overflow = elements.mobileMenuOverlay?.classList.contains('active') ? 'hidden' : '';
+  }
+
+  // Toast
+  function showToast(message, duration = 3000) {
+    if (!elements.toast || !elements.toastMessage) return;
+    elements.toastMessage.textContent = message;
+    elements.toast.classList.add('show');
+    setTimeout(() => elements.toast.classList.remove('show'), duration);
+  }
+
+  // Debounce
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }
 });
