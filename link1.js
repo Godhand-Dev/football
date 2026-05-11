@@ -1,6 +1,6 @@
 /**
  * Livematch.com.ng - Complete JavaScript Bundle
- * Combines: Firebase Config, Firebase Chat Class, and Main App Logic
+ * Updated & Debugged Version
  */
 
 const firebaseConfig = {
@@ -21,12 +21,11 @@ try {
   console.error('❌ Firebase initialization error:', error);
 }
 
-// Expose services globally
 window.firebaseAuth = firebase.auth();
 window.firebaseDb = firebase.firestore();
 
 // ==========================================
-// 2. FIREBASE CHAT CLASS
+// FIREBASE CHAT CLASS
 // ==========================================
 class FirebaseChat {
   constructor(messagesList, chatBox, messageInput, messageForm) {
@@ -63,17 +62,13 @@ class FirebaseChat {
       .limit(50)
       .onSnapshot(
         (snapshot) => {
-          const messages = [];
-          snapshot.forEach((doc) => messages.unshift(doc.data()));
-          
-          if (this.messagesList) {
-            messages.forEach((msg) => {
-              if (!this.loadedMessageIds.has(msg.id)) {
-                this.addMessageToUI(msg);
-                this.loadedMessageIds.add(msg.id);
-              }
-            });
-          }
+          snapshot.docChanges().forEach((change) => {
+            const msg = change.doc.data();
+            if (change.type === 'added' && !this.loadedMessageIds.has(msg.id)) {
+              this.addMessageToUI(msg);
+              this.loadedMessageIds.add(msg.id);
+            }
+          });
           this.scrollToBottom();
         },
         (error) => console.error('🔥 Error listening to messages:', error)
@@ -81,14 +76,12 @@ class FirebaseChat {
   }
 
   async sendMessage(text) {
-    if (!this.currentUser || !text.trim()) {
-      console.warn('⚠️ User not logged in or message is empty');
-      return false;
-    }
+    if (!this.currentUser || !text.trim()) return false;
+
     try {
       const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      await this.messagesRef.add({
+      const messageData = {
         id: messageId,
         userId: this.currentUser.uid,
         username: this.currentUser.displayName || 'Anonymous',
@@ -98,9 +91,13 @@ class FirebaseChat {
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         likes: 0,
         edited: false
-      });
+      };
 
+      await this.messagesRef.add(messageData);
+
+      // Clear input immediately
       if (this.messageInput) this.messageInput.value = '';
+      
       console.log('✅ Message sent successfully');
       return true;
     } catch (error) {
@@ -111,7 +108,7 @@ class FirebaseChat {
 
   addMessageToUI(message) {
     if (!this.messagesList) return;
-    
+
     const messageEl = document.createElement('li');
     messageEl.className = 'message-item';
     messageEl.dataset.messageId = message.id;
@@ -137,15 +134,26 @@ class FirebaseChat {
       </div>
       ${isCurrentUser ? `
         <div class="message-actions">
-          <button class="msg-delete" onclick="window.firebaseChat.deleteMessage('${message.id}')" title="Delete">
+          <button class="msg-delete" data-id="${message.id}" title="Delete">
             <i class="fas fa-trash"></i>
           </button>
         </div>
       ` : ''}
     `;
-    
+
+    // Attach delete event listener
+    if (isCurrentUser) {
+      const deleteBtn = messageEl.querySelector('.msg-delete');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+          this.deleteMessage(message.id);
+        });
+      }
+    }
+
     this.messagesList.appendChild(messageEl);
 
+    // Limit messages
     if (this.messagesList.children.length > 100) {
       const oldMsg = this.messagesList.children[0];
       if (oldMsg.dataset.messageId) this.loadedMessageIds.delete(oldMsg.dataset.messageId);
@@ -155,6 +163,7 @@ class FirebaseChat {
 
   async deleteMessage(messageId) {
     if (!confirm('Delete this message?')) return;
+    
     try {
       const snapshot = await this.messagesRef.where('id', '==', messageId).get();
       snapshot.forEach((doc) => doc.ref.delete());
@@ -168,7 +177,6 @@ class FirebaseChat {
     if (!this.currentUser) return;
     try {
       const presenceRef = firebase.firestore().collection('presence').doc(this.currentUser.uid);
-      
       if (isOnline) {
         await presenceRef.set({
           userId: this.currentUser.uid,
@@ -178,10 +186,7 @@ class FirebaseChat {
           online: true
         }, { merge: true });
       } else {
-        await presenceRef.update({
-          online: false,
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await presenceRef.update({ online: false, lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
       }
     } catch (error) {
       console.error('❌ Error updating presence:', error);
@@ -213,7 +218,7 @@ class FirebaseChat {
     if (this.chatBox) {
       setTimeout(() => {
         this.chatBox.scrollTop = this.chatBox.scrollHeight;
-      }, 0);
+      }, 10);
     }
   }
 
@@ -227,7 +232,7 @@ class FirebaseChat {
 window.FirebaseChat = FirebaseChat;
 
 // ==========================================
-// 3. MAIN APPLICATION LOGIC
+// MAIN APPLICATION LOGIC
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   const elements = {
@@ -333,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.chatBox?.addEventListener('scroll', handleChatScroll);
     elements.chatScrollHint?.addEventListener('click', scrollToBottom);
     elements.googleSigninBtn?.addEventListener('click', handleGoogleSignin);
-    
     elements.logoutBtn?.addEventListener('click', handleLogout);
     elements.themeToggle?.addEventListener('click', toggleTheme);
     
@@ -345,9 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', debounce(() => createParticles(), 250));
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && elements.mobileMenuOverlay?.classList.contains('active')) {
-        toggleMobileMenu();
-      }
+      if (e.key === 'Escape' && elements.mobileMenuOverlay?.classList.contains('active')) toggleMobileMenu();
       if (e.key === 'Enter' && e.ctrlKey && elements.messageInput?.value.trim()) {
         elements.messageForm?.requestSubmit();
       }
@@ -381,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       firebaseChatInstance.sendMessage(message).then((success) => {
         if (success) {
           showToast('💬 Message sent!');
-          scrollToBottom();
+          // scrollToBottom() is now handled in onSnapshot
         } else {
           showToast('❌ Failed to send message');
         }
@@ -404,7 +406,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ==================== FIXED GOOGLE SIGN-IN ====================
   function handleGoogleSignin(e) {
     if (e) e.preventDefault();
     console.log('🔐 Google Sign-In triggered');
@@ -426,8 +427,8 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch((error) => {
         console.error('❌ Sign-in error:', error.code, error.message);
         let msg = 'Sign-in failed. ';
-        if (error.code === 'auth/popup-blocked') msg += 'Please allow popups for this site.';
-        else if (error.code === 'auth/unauthorized-domain') msg += 'Domain not authorized in Firebase Console.';
+        if (error.code === 'auth/popup-blocked') msg += 'Please allow popups.';
+        else if (error.code === 'auth/unauthorized-domain') msg += 'Domain not authorized.';
         else msg += error.message;
         showToast(msg);
       });
@@ -437,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e) e.preventDefault();
     firebase.auth().signOut()
       .then(() => showToast('👋 Logged out successfully'))
-      .catch((error) => showToast('❌ Logout failed'));
+      .catch(() => showToast('❌ Logout failed'));
   }
 
   function updateAuthUI(user) {
@@ -445,8 +446,16 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.googleSigninBtn.style.display = 'none';
       if (elements.userProfile) {
         elements.userProfile.style.display = 'flex';
-        if (elements.userAvatar && user.photoURL) elements.userAvatar.src = user.photoURL;
-        if (elements.userName) elements.userName.textContent = user.displayName || user.email;
+        
+        // FIXED: Profile Picture
+        if (elements.userAvatar) {
+          elements.userAvatar.src = user.photoURL || 
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=00d4aa&color=fff&size=40`;
+          elements.userAvatar.alt = user.displayName || 'User';
+        }
+        if (elements.userName) {
+          elements.userName.textContent = user.displayName || user.email || 'User';
+        }
       }
     } else {
       elements.googleSigninBtn.style.display = 'flex';
@@ -454,10 +463,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function toggleTheme() {
+  function toggleTheme() { /* ... unchanged ... */ 
     state.isDarkMode = !state.isDarkMode;
     document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
-    
     if (elements.themeToggle) {
       const icon = elements.themeToggle.querySelector('i');
       if (icon) icon.className = state.isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
@@ -466,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(state.isDarkMode ? '🌙 Dark mode enabled' : '☀️ Light mode enabled');
   }
 
-  function applySavedTheme() {
+  function applySavedTheme() { /* ... unchanged ... */ 
     const savedTheme = localStorage.getItem('livematch-theme');
     if (savedTheme) {
       state.isDarkMode = savedTheme === 'dark';
