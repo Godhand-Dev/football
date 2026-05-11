@@ -38,7 +38,7 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="link1.css"/>
   
   <style>
     .ad-carousel { position: relative; overflow: hidden; width: 100%; max-width: 500px; margin: 0 auto; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
@@ -53,6 +53,10 @@
 </head>
 <body>
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NDSQP7TP" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- Header -->
+  <!-- Background Particles -->
+  <div id="particles" class="particles"></div>
+
   <!-- Header -->
   <header class="header">
     <div class="header-container">
@@ -99,13 +103,10 @@
         </div>
         
         <button id="bottomRefreshBtn" class="links-prompt">
-          ⚽ Match not loading? <strong>Refresh Player</strong>
+          ⚽ if streaming Breaks or stops? click here to </br><strong>Refresh Player</strong>
         </button>
         
-        <div class="stream-controls">
-          <button class="control-btn"><i class="fas fa-expand"></i> <span>Fullscreen</span></button>
-          <button class="control-btn"><i class="fas fa-cog"></i> <span>Quality</span></button>
-        </div>
+      
       </div>
     </section>
 
@@ -139,37 +140,6 @@
           
           <div class="online-users">
             <span id="userCount" class="user-count"><i class="fas fa-users"></i> <span>1,247</span> fans online</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Match Info -->
-      <div class="match-info-sidebar">
-        <div class="match-card">
-          <div class="match-teams">
-            <div class="team">
-              <img src="https://via.placeholder.com/60/1a1a2e/ffffff?text=MCI" alt="Man City" class="team-logo">
-              <span class="team-name">Man City</span>
-            </div>
-            <div class="vs">VS</div>
-            <div class="team">
-              <img src="https://via.placeholder.com/60/1a1a2e/ffffff?text=LIV" alt="Liverpool" class="team-logo">
-              <span class="team-name">Liverpool</span>
-            </div>
-          </div>
-          <div class="match-meta">
-            <span><i class="fas fa-clock"></i> 15:00 GMT</span>
-            <span><i class="fas fa-map-marker-alt"></i> Etihad Stadium</span>
-          </div>
-          <div class="match-stats">
-            <div class="stat">
-              <span class="stat-label">Possession</span>
-              <div class="stat-bar"><div class="stat-fill" style="width: 58%"></div><span>58%</span></div>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Shots on Target</span>
-              <div class="stat-values"><span>7</span><span>-</span><span>4</span></div>
-            </div>
           </div>
         </div>
       </div>
