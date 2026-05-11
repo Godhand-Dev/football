@@ -27,144 +27,9 @@ if (!firebase.apps.length) {
 window.firebaseAuth = firebase.auth();
 window.firebaseDb = firebase.firestore();
 
-// ==========================================
-// 2. FIREBASE CHAT CLASS
-// ==========================================
 class FirebaseChat {
-  constructor(messagesList, chatBox, messageInput, messageForm) {
-    this.messagesList = messagesList;
-    this.chatBox = chatBox;
-    this.messageInput = messageInput;
-    this.messageForm = messageForm;
-    this.currentUser = null;
-    this.messagesRef = firebase.firestore().collection('matches').doc('live-match').collection('messages');
-    this.unsubscribe = null;
-    this.loadedMessageIds = new Set();
-  }
-
-  init() {
-    firebase.auth().onAuthStateChanged((user) => {
-      this.currentUser = user;
-      if (user) {
-        console.log('👤 User logged in:', user.displayName);
-        this.listenToMessages();
-        this.setUserPresence(true);
-      } else {
-        console.log('🚪 User logged out');
-        if (this.unsubscribe) this.unsubscribe();
-        this.setUserPresence(false);
-      }
-    });
-  }
-
-  listenToMessages() {
-    if (this.unsubscribe) this.unsubscribe();
-    
-    this.unsubscribe = this.messagesRef
-      .orderBy('timestamp', 'desc')
-      .limit(50)
-      .onSnapshot(
-        (snapshot) => {
-          const messages = [];
-          snapshot.forEach((doc) => messages.unshift(doc.data()));
-          
-          if (this.messagesList) {
-            messages.forEach((msg) => {
-              if (!this.loadedMessageIds.has(msg.id)) {
-                this.addMessageToUI(msg);
-                this.loadedMessageIds.add(msg.id);
-              }
-            });
-          }
-          this.scrollToBottom();
-        },
-        (error) => console.error('🔥 Error listening to messages:', error)
-      );
-  }
-
-  async sendMessage(text) {
-    if (!this.currentUser || !text.trim()) {
-      console.warn('⚠️ User not logged in or message is empty');
-      return false;
-    }
-    try {
-      const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      await this.messagesRef.add({
-        id: messageId,
-        userId: this.currentUser.uid,
-        username: this.currentUser.displayName || 'Anonymous',
-        userEmail: this.currentUser.email,
-        userAvatar: this.currentUser.photoURL || null,
-        text: text.trim(),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        likes: 0,
-        edited: false
-      });
-
-      if (this.messageInput) this.messageInput.value = '';
-      console.log('✅ Message sent successfully');
-      return true;
-    } catch (error) {
-      console.error('❌ Error sending message:', error);
-      return false;
-    }
-  }
-
-  addMessageToUI(message) {
-    if (!this.messagesList) return;
-    
-    const messageEl = document.createElement('li');
-    messageEl.className = 'message-item';
-    messageEl.dataset.messageId = message.id;
-
-    const isCurrentUser = this.currentUser && this.currentUser.uid === message.userId;
-    const avatarUrl = message.userAvatar || this.getDefaultAvatar(message.username);
-    const timestamp = message.timestamp 
-      ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-      : 'now';
-
-    messageEl.innerHTML = `
-      <div class="message-avatar">
-        <img src="${avatarUrl}" alt="${message.username}" title="${message.username}">
-      </div>
-      <div class="message-content">
-        <div class="message-header">
-          <span class="message-username">${this.escapeHtml(message.username)}</span>
-          ${isCurrentUser ? '<span class="message-badge">You</span>' : ''}
-          <span class="message-time">${timestamp}</span>
-          ${message.edited ? '<span class="message-edited">(edited)</span>' : ''}
-        </div>
-        <p class="message-text">${this.escapeHtml(message.text)}</p>
-      </div>
-      ${isCurrentUser ? `
-        <div class="message-actions">
-          <button class="msg-delete" onclick="window.firebaseChat.deleteMessage('${message.id}')" title="Delete">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      ` : ''}
-    `;
-    
-    this.messagesList.appendChild(messageEl);
-
-    // Limit rendered messages to 100
-    if (this.messagesList.children.length > 100) {
-      const oldMsg = this.messagesList.children[0];
-      if (oldMsg.dataset.messageId) this.loadedMessageIds.delete(oldMsg.dataset.messageId);
-      oldMsg.remove();
-    }
-  }
-
-  async deleteMessage(messageId) {
-    if (!confirm('Delete this message?')) return;
-    try {
-      const snapshot = await this.messagesRef.where('id', '==', messageId).get();
-      snapshot.forEach((doc) => doc.ref.delete());
-      console.log('🗑️ Message deleted');
-    } catch (error) {
-      console.error('❌ Error deleting message:', error);
-    }
+  constructor() {
+    this.currentUser = firebase.auth().currentUser;
   }
 
   async setUserPresence(isOnline) {
@@ -197,29 +62,6 @@ class FirebaseChat {
       .onSnapshot((snapshot) => callback(snapshot.size));
   }
 
-  getDefaultAvatar(username) {
-    const initials = username.substring(0, 2).toUpperCase();
-    const bgColor = this.stringToColor(username);
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${bgColor.substring(1)}&color=fff&size=40`;
-  }
-
-  stringToColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = hash % 360;
-    return `hsl(${hue}, 70%, 50%)`;
-  }
-
-  scrollToBottom() {
-    if (this.chatBox) {
-      setTimeout(() => {
-        this.chatBox.scrollTop = this.chatBox.scrollHeight;
-      }, 0);
-    }
-  }
-
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -227,24 +69,16 @@ class FirebaseChat {
   }
 }
 
-window.FirebaseChat = FirebaseChat;
-
 // ==========================================
 // 3. MAIN APPLICATION LOGIC
 // ==========================================
-let firebaseChat = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   // DOM elements
   const elements = {
     playerOverlay: document.getElementById('playerOverlay'),
     refreshBtn: document.getElementById('refreshBtn'),
-    altLinksBtn: document.getElementById('altLinksBtn'),
-    chatBox: document.getElementById('chat-box'),
-    messagesList: document.getElementById('messages'),
-    messageForm: document.getElementById('message-form'),
-    messageInput: document.getElementById('message-input'),
-    chatScrollHint: document.getElementById('chatScrollHint'),
+    // Removed chat-related elements
     googleSigninBtn: document.getElementById('google-signin'),
     logoutBtn: document.getElementById('logout'),
     userProfile: document.getElementById('user-profile'),
@@ -263,8 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isDarkMode: true,
     isUserLoggedIn: false,
     isChatAtBottom: true,
-    currentUser: null
   };
+
+  let firebaseChat = new FirebaseChat();
 
   // Initialize everything
   init();
@@ -274,35 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     applySavedTheme();
     setupAuthListener();
-
-    // Initialize Firebase Chat
-    try {
-      firebaseChat = new FirebaseChat(
-        elements.messagesList,
-        elements.chatBox,
-        elements.messageInput,
-        elements.messageForm
-      );
-      window.firebaseChat = firebaseChat;
-      firebaseChat.init();
-    } catch (error) {
-      console.error('❌ Failed to initialize Firebase Chat:', error);
-    }
-
     // Online user counter
-    if (firebaseChat) {
-      firebaseChat.getOnlineUserCount((count) => {
-        if (elements.userCount) {
-          elements.userCount.textContent = count.toLocaleString();
-        }
-      });
-    }
+    firebaseChat.getOnlineUserCount((count) => {
+      if (elements.userCount) {
+        elements.userCount.textContent = count.toLocaleString();
+      }
+    });
   }
 
   // Auth State Listener
   function setupAuthListener() {
     firebase.auth().onAuthStateChanged((user) => {
-      state.currentUser = user;
+      firebaseChat.currentUser = user;
       state.isUserLoggedIn = !!user;
       updateAuthUI(user);
       if (user) showToast(`👋 Welcome, ${user.displayName || 'User'}!`);
@@ -332,14 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event Listeners
   function setupEventListeners() {
     elements.refreshBtn?.addEventListener('click', refreshStream);
-    elements.altLinksBtn?.addEventListener('click', (e) => {
-      e.preventDefault();
-      showToast('🔗 Alternative links opened in new tab');
-    });
-    
-    elements.messageForm?.addEventListener('submit', handleSendMessage);
-    elements.chatBox?.addEventListener('scroll', handleChatScroll);
-    elements.chatScrollHint?.addEventListener('click', scrollToBottom);
     
     elements.googleSigninBtn?.addEventListener('click', handleGoogleSignin);
     elements.logoutBtn?.addEventListener('click', handleLogout);
@@ -382,43 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Chat Functions
-  function handleSendMessage(e) {
-    e.preventDefault();
-    if (!state.isUserLoggedIn) {
-      showToast('⚠️ Please sign in to send messages');
-      return;
-    }
-    const message = elements.messageInput?.value.trim();
-    if (!message) return;
-
-    if (firebaseChat) {
-      firebaseChat.sendMessage(message).then((success) => {
-        if (success) {
-          showToast('💬 Message sent!');
-          scrollToBottom();
-        } else {
-          showToast('❌ Failed to send message');
-        }
-      });
-    }
-  }
-
-  function handleChatScroll() {
-    if (!elements.chatBox) return;
-    const { scrollTop, scrollHeight, clientHeight } = elements.chatBox;
-    state.isChatAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-    if (state.isChatAtBottom) elements.chatScrollHint?.classList.remove('visible');
-  }
-
-  function scrollToBottom() {
-    if (elements.chatBox) {
-      elements.chatBox.scrollTo({ top: elements.chatBox.scrollHeight, behavior: 'smooth' });
-      state.isChatAtBottom = true;
-      elements.chatScrollHint?.classList.remove('visible');
-    }
-  }
-
   // AUTHENTICATION - Fixed Google Sign-In (popup method)
   function handleGoogleSignin(e) {
     e.preventDefault();
@@ -455,14 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateAuthUI(user) {
     if (user) {
-      elements.googleSigninBtn.style.display = 'none';
+      if (elements.googleSigninBtn) elements.googleSigninBtn.style.display = 'none';
       if (elements.userProfile) {
         elements.userProfile.style.display = 'flex';
         if (elements.userAvatar && user.photoURL) elements.userAvatar.src = user.photoURL;
         if (elements.userName) elements.userName.textContent = user.displayName || user.email;
       }
     } else {
-      elements.googleSigninBtn.style.display = 'flex';
+      if (elements.googleSigninBtn) elements.googleSigninBtn.style.display = 'flex';
       if (elements.userProfile) elements.userProfile.style.display = 'none';
     }
   }
